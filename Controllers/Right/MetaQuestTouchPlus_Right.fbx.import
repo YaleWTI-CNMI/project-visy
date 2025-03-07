@@ -1,0 +1,49 @@
+[remap]
+
+importer="scene"
+importer_version=1
+type="PackedScene"
+uid="uid://c86hs4j1yo60t"
+path="res://.godot/imported/MetaQuestTouchPlus_Right.fbx-93bb686f9c33d3d3bc1855e589a5076f.scn"
+
+[deps]
+
+source_file="res://Controllers/Right/MetaQuestTouchPlus_Right.fbx"
+dest_files=["res://.godot/imported/MetaQuestTouchPlus_Right.fbx-93bb686f9c33d3d3bc1855e589a5076f.scn"]
+
+[params]
+
+nodes/root_type=""
+nodes/root_name=""
+nodes/apply_root_scale=true
+nodes/root_scale=0.01
+nodes/import_as_skeleton_bones=true
+nodes/use_node_type_suffixes=true
+meshes/ensure_tangents=true
+meshes/generate_lods=true
+meshes/create_shadow_meshes=true
+meshes/light_baking=1
+meshes/lightmap_texel_size=0.2
+meshes/force_disable_compression=false
+skins/use_named_skins=true
+animation/import=true
+animation/fps=30
+animation/trimming=true
+animation/remove_immutable_tracks=true
+animation/import_rest_as_RESET=false
+import_script/path=""
+_subresources={
+"materials": {
+"batteryIndicator_mat": {
+"use_external/enabled": true,
+"use_external/path": "uid://ch4aw8mlbu77j"
+},
+"controllerMATphongRT": {
+"use_external/enabled": true,
+"use_external/path": "res://Controllers/Right/controllerMATphongRT.tres"
+}
+}
+}
+fbx/importer=0
+fbx/allow_geometry_helper_nodes=false
+fbx/embedded_image_handling=1

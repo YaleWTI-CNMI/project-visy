@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3 uid="uid://c0n8fp6o5t2mh"]
+
+[ext_resource type="Script" uid="uid://dixjwil0ph5pd" path="res://ui/xr_window.gd" id="1_ftaok"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c037f"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_b48tu"]
+material = SubResource("StandardMaterial3D_c037f")
+size = Vector2(1, 1)
+
+[sub_resource type="GDScript" id="GDScript_pk1c3"]
+script/source = "extends MeshInstance3D
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	pass
+	#self.material_override
+	#(self.mesh.surface_get_material(0) as StandardMaterial3D).albedo_texture = $SubViewport.get_texture()
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _process(delta: float) -> void:
+	pass
+"
+
+[node name="XRWindow" type="Node3D"]
+script = ExtResource("1_ftaok")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("PlaneMesh_b48tu")
+skeleton = NodePath("../../..")
+script = SubResource("GDScript_pk1c3")
+
+[node name="SubViewport" type="SubViewport" parent="MeshInstance3D"]
+transparent_bg = true
+handle_input_locally = false
+screen_space_aa = 1
+gui_embed_subwindows = true
+size = Vector2i(1920, 1920)
+size_2d_override_stretch = true
+
+[node name="CanvasLayer" type="CanvasLayer" parent="MeshInstance3D/SubViewport"]

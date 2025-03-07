@@ -1,0 +1,205 @@
+[gd_scene load_steps=12 format=3 uid="uid://dskyy3mp8r402"]
+
+[ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
+[ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
+[ext_resource type="PackedScene" uid="uid://cmdmiakst0imi" path="res://ui/test_ui.tscn" id="2_qaduo"]
+[ext_resource type="PackedScene" uid="uid://b14mudf4lehef" path="res://plot_types/scatter/scatter_plot.tscn" id="4_pxli7"]
+[ext_resource type="Script" uid="uid://1wo1jy5wqe3i" path="res://ws_client/ws_client.gd" id="5_em06p"]
+[ext_resource type="PackedScene" uid="uid://cdjnq5jmt4cur" path="res://plot_types/heatmap/heatmap_plot.tscn" id="6_h7lmj"]
+
+[sub_resource type="GDScript" id="GDScript_k2yeb"]
+script/source = "extends Node3D
+
+signal focus_lost
+signal focus_gained
+signal pose_recentered
+
+@export var maximum_refresh_rate : int = 90
+@export var environment : WorldEnvironment
+
+var xr_interface : OpenXRInterface
+var xr_is_focussed = false
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	xr_interface = XRServer.find_interface(\"OpenXR\")
+	if xr_interface and xr_interface.is_initialized():
+		print(\"OpenXR instantiated successfully.\")
+		var vp : Viewport = get_viewport()
+
+		# Enable XR on our viewport
+		vp.use_xr = true
+
+		# Make sure v-sync is off, v-sync is handled by OpenXR
+		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+
+		# Enable VRS
+		if RenderingServer.get_rendering_device():
+			vp.vrs_mode = Viewport.VRS_XR
+		elif int(ProjectSettings.get_setting(\"xr/openxr/foveation_level\")) == 0:
+			push_warning(\"OpenXR: Recommend setting Foveation level to High in Project Settings\")
+
+		# Connect the OpenXR events
+		xr_interface.session_begun.connect(_on_openxr_session_begun)
+		xr_interface.session_visible.connect(_on_openxr_visible_state)
+		xr_interface.session_focussed.connect(_on_openxr_focused_state)
+		xr_interface.session_stopping.connect(_on_openxr_stopping)
+		xr_interface.pose_recentered.connect(_on_openxr_pose_recentered)
+		
+		# Enable AR
+		var modes = xr_interface.get_supported_environment_blend_modes()
+		if XRInterface.XR_ENV_BLEND_MODE_ALPHA_BLEND in modes:
+			xr_interface.environment_blend_mode = XRInterface.XR_ENV_BLEND_MODE_ALPHA_BLEND
+			vp.transparent_bg = true
+		elif XRInterface.XR_ENV_BLEND_MODE_ADDITIVE in modes:
+			xr_interface.environment_blend_mode = XRInterface.XR_ENV_BLEND_MODE_ADDITIVE
+			vp.transparent_bg = false		
+			
+		environment.environment.background_mode = Environment.BG_COLOR
+		environment.environment.background_color = Color(0.0, 0.0, 0.0, 0.0)
+		environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR	
+			
+		
+		#switch_to_vr()
+			
+	else:
+		# We couldn't start OpenXR.
+		print(\"OpenXR not instantiated!\")
+		get_tree().quit()
+
+func switch_to_vr() -> bool:
+	var xr_interface: XRInterface = XRServer.primary_interface
+	if xr_interface:
+		var modes = xr_interface.get_supported_environment_blend_modes()
+		if XRInterface.XR_ENV_BLEND_MODE_OPAQUE in modes:
+			xr_interface.environment_blend_mode = XRInterface.XR_ENV_BLEND_MODE_OPAQUE
+		else:
+			return false
+
+	var vp : Viewport = get_viewport()
+	vp.transparent_bg = false
+	environment.environment.background_mode = Environment.BG_SKY
+	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_BG
+	return true
+	
+# Handle OpenXR session ready
+func _on_openxr_session_begun() -> void:
+	# Get the reported refresh rate
+	var current_refresh_rate = xr_interface.get_display_refresh_rate()
+	if current_refresh_rate > 0:
+		print(\"OpenXR: Refresh rate reported as \", str(current_refresh_rate))
+	else:
+		print(\"OpenXR: No refresh rate given by XR runtime\")
+
+	# See if we have a better refresh rate available
+	var new_rate = current_refresh_rate
+	var available_rates : Array = xr_interface.get_available_display_refresh_rates()
+	if available_rates.size() == 0:
+		print(\"OpenXR: Target does not support refresh rate extension\")
+	elif available_rates.size() == 1:
+		# Only one available, so use it
+		new_rate = available_rates[0]
+	else:
+		for rate in available_rates:
+			if rate > new_rate and rate <= maximum_refresh_rate:
+				new_rate = rate
+
+	# Did we find a better rate?
+	if current_refresh_rate != new_rate:
+		print(\"OpenXR: Setting refresh rate to \", str(new_rate))
+		xr_interface.set_display_refresh_rate(new_rate)
+		current_refresh_rate = new_rate
+
+	# Now match our physics rate
+	Engine.physics_ticks_per_second = current_refresh_rate
+
+# Handle OpenXR visible state
+func _on_openxr_visible_state() -> void:
+	# We always pass this state at startup,
+	# but the second time we get this it means our player took off their headset
+	if xr_is_focussed:
+		print(\"OpenXR lost focus\")
+
+		xr_is_focussed = false
+
+		# pause our game
+		get_tree().paused = true
+
+		emit_signal(\"focus_lost\")
+
+# Handle OpenXR focused state
+func _on_openxr_focused_state() -> void:
+	print(\"OpenXR gained focus\")
+	xr_is_focussed = true
+
+	# unpause our game
+	get_tree().paused = false
+
+	emit_signal(\"focus_gained\")
+
+# Handle OpenXR stopping state
+func _on_openxr_stopping() -> void:
+	# Our session is being stopped.
+	print(\"OpenXR is stopping\")
+
+# Handle OpenXR pose recentered signal
+func _on_openxr_pose_recentered() -> void:
+	# User recentered view, we have to react to this by recentering the view.
+	# This is game implementation dependent.
+	emit_signal(\"pose_recentered\")
+"
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ivaup"]
+sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+ground_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
+
+[sub_resource type="Sky" id="Sky_a6atd"]
+sky_material = SubResource("ProceduralSkyMaterial_ivaup")
+
+[sub_resource type="Environment" id="Environment_haax2"]
+sky = SubResource("Sky_a6atd")
+ambient_light_source = 2
+ambient_light_color = Color(0.491583, 0.491583, 0.491583, 1)
+tonemap_mode = 3
+adjustment_saturation = 0.01
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_72ob8"]
+albedo_color = Color(0.816755, 0, 0.165288, 1)
+
+[node name="Node3D" type="Node3D"]
+
+[node name="XRManager" type="Node3D" parent="." node_paths=PackedStringArray("environment")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.536682, 1.7, -1)
+script = SubResource("GDScript_k2yeb")
+environment = NodePath("../WorldEnvironment")
+
+[node name="Player" parent="." instance=ExtResource("1_0crdm")]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_haax2")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+sky_mode = 1
+
+[node name="reddot2" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.536682, 1.7, -1)
+visible = false
+radius = 0.01
+radial_segments = 30
+rings = 30
+material = SubResource("StandardMaterial3D_72ob8")
+
+[node name="XRWindow" parent="reddot2" instance=ExtResource("1_dkjm7")]
+
+[node name="InitialContent" parent="reddot2/XRWindow" instance=ExtResource("2_qaduo")]
+metadata/_edit_use_anchors_ = true
+
+[node name="ScatterPlot" parent="." instance=ExtResource("4_pxli7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.09, 0.03)
+
+[node name="WSClient" type="Node3D" parent="."]
+script = ExtResource("5_em06p")
+
+[node name="HeatmapPlot" parent="." instance=ExtResource("6_h7lmj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0155029, 0.634981, 1.43016)

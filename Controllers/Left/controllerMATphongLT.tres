@@ -1,0 +1,23 @@
+[gd_resource type="StandardMaterial3D" load_steps=6 format=3 uid="uid://cffiqaibmtgeh"]
+
+[ext_resource type="Texture2D" uid="uid://cgv5fowum573h" path="res://Controllers/textures/MetaQuestTouchPlus_Left_BaseColor.png" id="1_emlmb"]
+[ext_resource type="Texture2D" uid="uid://d1k2277pdiuvo" path="res://Controllers/textures/MetaQuestTouchPlus_AO.png" id="2_enqk0"]
+[ext_resource type="Texture2D" uid="uid://dh7jn50ppcce5" path="res://Controllers/textures/MetaQuestTouchPlus_Metallic.png" id="2_ypgii"]
+[ext_resource type="Texture2D" uid="uid://kfsq015jsl1w" path="res://Controllers/textures/MetaQuestTouchPlus_Normals.png" id="3_gyn8f"]
+[ext_resource type="Texture2D" uid="uid://cdlm6516jfscp" path="res://Controllers/textures/MetaQuestTouchPlus_Roughness.png" id="4_hra3k"]
+
+[resource]
+resource_name = "controllerMATphongLT"
+specular_mode = 1
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("1_emlmb")
+metallic = 1.0
+metallic_texture = ExtResource("2_ypgii")
+roughness_texture = ExtResource("4_hra3k")
+normal_enabled = true
+normal_texture = ExtResource("3_gyn8f")
+rim_enabled = true
+ao_enabled = true
+ao_light_affect = 1.0
+ao_texture = ExtResource("2_enqk0")
+backlight = Color(0.0249494, 0.266403, 0.231579, 1)

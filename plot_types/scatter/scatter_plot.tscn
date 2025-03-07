@@ -1,0 +1,153 @@
+[gd_scene load_steps=15 format=3 uid="uid://b14mudf4lehef"]
+
+[ext_resource type="PackedScene" uid="uid://0o5avwt58kbx" path="res://plot_types/scatter/Point.tscn" id="1_rksjl"]
+[ext_resource type="Shader" uid="uid://b2va6qk0e3a8f" path="res://plot_types/scatter/AxesPlaneLinear.gdshader" id="1_u2ugu"]
+[ext_resource type="Script" uid="uid://dxn6p4w7d4ogi" path="res://interaction/interaction_receiver.gd" id="3_reog7"]
+
+[sub_resource type="GDScript" id="GDScript_lny24"]
+script/source = "extends Node3D
+
+@export var point_scene: PackedScene
+@export var point_mesh: Mesh
+
+# Called when the node enters the scene tree for the first time.
+func _ready() -> void:
+	var mm = MultiMesh.new()
+	mm.mesh = point_mesh
+	mm.transform_format = MultiMesh.TRANSFORM_3D
+	mm.instance_count = 1000
+	for i in range(mm.instance_count):
+		var transform = Transform3D()
+		transform.origin = Vector3(randf_range(0, 1),randf_range(0, 1), randf_range(0, 1))
+		
+		mm.set_instance_transform(i, transform)
+	
+	$PlotOrigin/MultiMeshInstance3D.multimesh = mm
+	#for i in range(100000):
+		#var point: Node3D = point_scene.instantiate()
+		#$PlotOrigin.add_child(point)
+		#point.position = Vector3(randf_range(0, 1),randf_range(0, 1), randf_range(0, 1))
+		#point.scale = Vector3(1, 1, 1)
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+func _physics_process(delta: float) -> void:
+	#RenderingServer.mesh_create()
+	#self.position.z = self.position.z + sin(float(Time.get_ticks_usec())/100.0)
+	pass
+"
+
+[sub_resource type="Shader" id="Shader_fknd8"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.3.stable.mono's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_toon, specular_toon;
+
+uniform vec4 albedo : source_color;
+
+void vertex() {
+	//vec3 world_pos = (INV_VIEW_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	//float l = length(world_pos - CAMERA_POSITION_WORLD);
+	//VERTEX = VERTEX * 1.0 / max(1, (l - 0.3) * 400.0);
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+
+	ALBEDO = NODE_POSITION_WORLD * NODE_POSITION_WORLD * NODE_POSITION_WORLD * NODE_POSITION_WORLD * NODE_POSITION_WORLD;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bcvfo"]
+render_priority = 0
+shader = SubResource("Shader_fknd8")
+shader_parameter/albedo = Color(0.790008, 0.938749, 0.936583, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_8kqjr"]
+material = SubResource("ShaderMaterial_bcvfo")
+radius = 0.01
+height = 0.02
+radial_segments = 8
+rings = 4
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_4o7ju"]
+render_priority = 0
+shader = ExtResource("1_u2ugu")
+shader_parameter/line_width = 0.63
+shader_parameter/line_falloff = 0.01
+shader_parameter/x_step = 0.1
+shader_parameter/y_step = 0.1
+shader_parameter/z_step = 0.1
+shader_parameter/axes = Vector3(1, 0, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_pbmiu"]
+material = SubResource("ShaderMaterial_4o7ju")
+size = Vector2(1, 1)
+subdivide_width = 1
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_mcvqo"]
+render_priority = 0
+shader = ExtResource("1_u2ugu")
+shader_parameter/line_width = 0.63
+shader_parameter/line_falloff = 0.01
+shader_parameter/x_step = 0.1
+shader_parameter/y_step = 0.1
+shader_parameter/z_step = 0.1
+shader_parameter/axes = Vector3(0, 1, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_55bi6"]
+material = SubResource("ShaderMaterial_mcvqo")
+size = Vector2(1, 1)
+subdivide_width = 1
+orientation = 0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_1ieeo"]
+render_priority = 0
+shader = ExtResource("1_u2ugu")
+shader_parameter/line_width = 0.63
+shader_parameter/line_falloff = 0.01
+shader_parameter/x_step = 0.1
+shader_parameter/y_step = 0.1
+shader_parameter/z_step = 0.1
+shader_parameter/axes = Vector3(1, 1, 0)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ahnxo"]
+material = SubResource("ShaderMaterial_1ieeo")
+size = Vector2(1, 1)
+subdivide_width = 1
+orientation = 2
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_reog7"]
+
+[node name="ScatterPlot" type="Node3D"]
+script = SubResource("GDScript_lny24")
+point_scene = ExtResource("1_rksjl")
+point_mesh = SubResource("SphereMesh_8kqjr")
+
+[node name="PlotOrigin" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -0.5, -0.5)
+gizmo_extents = 1.3
+
+[node name="MultiMeshInstance3D" type="MultiMeshInstance3D" parent="PlotOrigin"]
+
+[node name="Point" parent="PlotOrigin" instance=ExtResource("1_rksjl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.500508, 0.497005, 0.506853)
+
+[node name="AxisPlaneY" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("PlaneMesh_pbmiu")
+
+[node name="AxisPlaneX" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, 0, 0)
+mesh = SubResource("PlaneMesh_55bi6")
+
+[node name="AxisPlaneZ" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.5)
+mesh = SubResource("PlaneMesh_ahnxo")
+
+[node name="InteractionReceiver" type="Area3D" parent="."]
+script = ExtResource("3_reog7")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionReceiver"]
+shape = SubResource("BoxShape3D_reog7")

@@ -1,0 +1,50 @@
+[gd_scene load_steps=4 format=3 uid="uid://0o5avwt58kbx"]
+
+[sub_resource type="Shader" id="Shader_fknd8"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.3.stable.mono's StandardMaterial3D.
+
+shader_type spatial;
+render_mode blend_mix, depth_draw_opaque, cull_back, diffuse_toon, specular_toon, unshaded;
+
+uniform vec4 albedo : source_color;
+uniform sampler2D texture_albedo : source_color, filter_linear_mipmap, repeat_enable;
+uniform float point_size : hint_range(0.1, 128.0, 0.1);
+uniform vec3 fresnel_color: source_color;
+
+vec3 fresnel_glow(float amount, float intensity, vec3 color, vec3 normal, vec3 view)
+{
+	return pow((1.0 - dot(normalize(normal), normalize(view))), amount) * color * intensity;
+}
+
+void vertex() {
+	float l = length(NODE_POSITION_WORLD - CAMERA_POSITION_WORLD);
+	VERTEX = VERTEX * 1.0 / max(1, (l - 0.3) * 400.0);
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+	vec3 fresnel = fresnel_glow(.3, 1.5, fresnel_color, NORMAL, VIEW);
+
+	vec4 albedo_tex = texture(texture_albedo, base_uv);
+	ALBEDO = albedo.rgb * albedo_tex.rgb * 1.0 / fresnel;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_bcvfo"]
+render_priority = 0
+shader = SubResource("Shader_fknd8")
+shader_parameter/albedo = Color(0.133333, 0.294118, 0.294118, 1)
+shader_parameter/point_size = 1.0
+shader_parameter/fresnel_color = Color(0.11015, 0.531759, 0.672093, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_f4rmh"]
+material = SubResource("ShaderMaterial_bcvfo")
+radius = 0.01
+height = 0.02
+radial_segments = 6
+rings = 4
+
+[node name="Point" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_f4rmh")

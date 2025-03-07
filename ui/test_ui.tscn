@@ -1,0 +1,44 @@
+[gd_scene load_steps=5 format=3 uid="uid://cmdmiakst0imi"]
+
+[ext_resource type="Theme" uid="uid://dqjl0oqkkyb1o" path="res://ui/themes/default_theme.tres" id="1_7bmgw"]
+[ext_resource type="Texture2D" uid="uid://dv65wdbpnunnr" path="res://icon.svg" id="1_b3hg4"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_ajv2k"]
+font_size = 100
+
+[sub_resource type="LabelSettings" id="LabelSettings_kpam4"]
+font_size = 70
+
+[node name="TestUI" type="Panel"]
+clip_contents = true
+offset_right = 1000.0
+offset_bottom = 1400.0
+theme = ExtResource("1_7bmgw")
+
+[node name="Label" type="Label" parent="."]
+layout_mode = 1
+offset_right = 495.0
+offset_bottom = 137.0
+text = "Welcome"
+label_settings = SubResource("LabelSettings_ajv2k")
+uppercase = true
+
+[node name="Label2" type="Label" parent="."]
+layout_mode = 1
+offset_top = 161.0
+offset_right = 1306.0
+offset_bottom = 257.0
+text = "This is a test of the UI windows in VISY!"
+label_settings = SubResource("LabelSettings_kpam4")
+
+[node name="TextureRect" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.005
+anchor_top = 0.226429
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_b3hg4")
+metadata/_edit_use_anchors_ = true

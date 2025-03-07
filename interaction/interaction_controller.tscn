@@ -1,0 +1,134 @@
+[gd_scene load_steps=4 format=3 uid="uid://upq2x85t8hbw"]
+
+[ext_resource type="Script" uid="uid://duhm0hfdfdtg6" path="res://interaction/interaction_controller.gd" id="1_uu2g2"]
+
+[sub_resource type="GDScript" id="GDScript_fi52h"]
+script/source = "@tool
+extends MeshInstance3D
+
+@export var samples: int = 100
+@export var radius: float = 0.05  # Tube thickness
+@export var sides: int = 8  # Number of segments around the tube
+@export var color_start: Color = Color(1, 0, 0)  # Color before midpoint (red)
+@export var color_end: Color = Color(0, 0, 1)  # Color after midpoint (blue)
+@export var bias: float = 1.2  # Adjust curve influence towards midpoint
+@export var render_material: BaseMaterial3D
+
+@export var _attached_node: Node3D
+@export var _aim_node: Node3D
+
+var _mesh: ImmediateMesh
+
+func get_point_on_curve(p0: Vector3, p1: Vector3, p2: Vector3, t: float) -> Vector3:
+	\"\"\"
+	Returns a point along a quadratic Bézier curve with bias applied to p1.
+	\"\"\"
+	var a: Vector3 = p0.lerp(p1, t * bias)
+	var b: Vector3 = p1.lerp(p2, t * (2.0 - bias))
+	return a.lerp(b, t)
+
+func _ready():
+	_mesh = self.mesh
+
+func _process(delta: float) -> void:
+	if _mesh == null:
+		_mesh = ImmediateMesh.new()
+		self.mesh = _mesh
+	
+	_mesh.clear_surfaces()
+	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, render_material)
+
+	for i in range(samples):
+		var t0 = float(i) / samples
+		var t1 = float(i + 1) / samples
+
+		var p0 = get_point_on_curve(Vector3.ZERO, _aim_node.global_position - self.global_position, _attached_node.global_position - self.global_position, t0)
+		var p1 = get_point_on_curve(Vector3.ZERO, _aim_node.global_position - self.global_position, _attached_node.global_position - self.global_position, t1)
+
+		# Compute the direction of the segment
+		var direction: Vector3 = (p1 - p0).normalized()
+
+		# Generate perpendicular vectors for the tube
+		var up: Vector3 = Vector3.UP if abs(direction.dot(Vector3.UP)) < 0.9 else Vector3.RIGHT
+		var right: Vector3 = up.cross(direction).normalized() * radius
+		var forward: Vector3 = direction.cross(right).normalized() * radius
+
+		# Generate circular ring vertices with the **correct** per-vertex color
+		var ring0: Array = []
+		var ring1: Array = []
+
+		var color0: Color = color_start.lerp(color_end, t0)  # Color for this ring
+		var color1: Color = color_start.lerp(color_end, t1)  # Color for next ring
+
+		for j in range(sides):
+			var angle = TAU * (float(j) / sides)
+			var offset = (right * cos(angle)) + (forward * sin(angle))
+
+			ring0.append({ \"position\": p0 + offset, \"color\": color0 })
+			ring1.append({ \"position\": p1 + offset, \"color\": color1 })
+
+		# Create quads (two triangles per segment)
+		for j in range(sides):
+			var next = (j + 1) % sides  # Wrap around for the last segment
+
+			# Triangle 1
+			_mesh.surface_set_color(ring0[j][\"color\"])
+			_mesh.surface_add_vertex(ring0[j][\"position\"])
+			
+			_mesh.surface_set_color(ring1[j][\"color\"])
+			_mesh.surface_add_vertex(ring1[j][\"position\"])
+			
+			_mesh.surface_set_color(ring0[next][\"color\"])
+			_mesh.surface_add_vertex(ring0[next][\"position\"])
+
+			# Triangle 2
+			_mesh.surface_set_color(ring0[next][\"color\"])
+			_mesh.surface_add_vertex(ring0[next][\"position\"])
+
+			_mesh.surface_set_color(ring1[j][\"color\"])
+			_mesh.surface_add_vertex(ring1[j][\"position\"])
+
+			_mesh.surface_set_color(ring1[next][\"color\"])
+			_mesh.surface_add_vertex(ring1[next][\"position\"])
+
+	_mesh.surface_end()
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qltbt"]
+resource_local_to_scene = true
+blend_mode = 1
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[node name="InteractionController" type="Node3D"]
+script = ExtResource("1_uu2g2")
+
+[node name="RayCast3D" type="RayCast3D" parent="."]
+target_position = Vector3(0, 0, -1)
+collision_mask = 256
+collide_with_areas = true
+collide_with_bodies = false
+debug_shape_thickness = 1
+
+[node name="RibbonMeshRemoteTransform3D" type="RemoteTransform3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+remote_path = NodePath("../RibbonMesh3D")
+update_rotation = false
+update_scale = false
+
+[node name="AimNode" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="AttachedNode" type="Node3D" parent="AimNode"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="RibbonMesh3D" type="MeshInstance3D" parent="." node_paths=PackedStringArray("_attached_node", "_aim_node")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+top_level = true
+script = SubResource("GDScript_fi52h")
+samples = 14
+radius = 0.005
+bias = 1.0
+render_material = SubResource("StandardMaterial3D_qltbt")
+_attached_node = NodePath("../AimNode/AttachedNode")
+_aim_node = NodePath("../AimNode")

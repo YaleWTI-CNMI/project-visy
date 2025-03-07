@@ -1,0 +1,35 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://ch4aw8mlbu77j"]
+
+[ext_resource type="Texture2D" uid="uid://s7sawmj6vbbp" path="res://Controllers/textures/batteryIndicatorTexture32.png" id="1_tfxsk"]
+
+[sub_resource type="Shader" id="Shader_tfxsk"]
+code = "// NOTE: Shader automatically converted from Godot Engine 4.4.stable's StandardMaterial3D.
+
+shader_type spatial;
+render_mode cull_back, unshaded, blend_add;
+
+
+uniform sampler2D texture_emission : source_color, hint_default_black, filter_linear_mipmap, repeat_enable;
+uniform vec4 emission : source_color;
+uniform float emission_energy : hint_range(0.0, 100.0, 0.01);
+
+
+void vertex() {
+}
+
+void fragment() {
+	vec2 base_uv = UV;
+	
+	vec3 emission_tex = texture(texture_emission, base_uv).rgb;
+	// Emission Operator: Add
+	ALBEDO = (emission.rgb * emission_tex.r * emission_tex.g * emission_tex.b) * emission_energy;
+}
+"
+
+[resource]
+resource_name = "batteryIndicator_mat"
+render_priority = 0
+shader = SubResource("Shader_tfxsk")
+shader_parameter/texture_emission = ExtResource("1_tfxsk")
+shader_parameter/emission = Color(0.178052, 0.4371, 0.391682, 1)
+shader_parameter/emission_energy = 28.44

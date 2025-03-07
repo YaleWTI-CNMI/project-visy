@@ -1,0 +1,190 @@
+[gd_scene load_steps=7 format=3 uid="uid://cdjnq5jmt4cur"]
+
+[ext_resource type="Script" uid="uid://dxn6p4w7d4ogi" path="res://interaction/interaction_receiver.gd" id="1_gxkuq"]
+
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_rkcl2"]
+
+[sub_resource type="GDScript" id="GDScript_fux7b"]
+script/source = "@tool
+extends MeshInstance3D
+
+var _mesh: ImmediateMesh
+
+@export var size: int = 10  # Inner grid size (not including padding)
+@export var padding: int = 2  # Padding around the grid
+@export var max_height: float = 0.3  # Maximum displacement height
+@export var render_material: Material
+@export var points_scale: float = 0.01
+@export var points: Array = []  # 2D height values array
+
+@export_tool_button(\"Generate Random Points\") 
+var gen_points = _generate_points
+
+# Generate heightmap with padding
+func _generate_points():
+	points.clear()
+	var total_size = size + (2 * padding)  # Grid with padding included
+
+	for i in range(total_size):
+		points.append([])
+		for j in range(total_size):
+			if i < padding or i >= size + padding or j < padding or j >= size + padding:
+				points[i].append(0.0)  # Padding region (flat)
+			else:
+				points[i].append(randf() * max_height)  # Random float height
+	
+	notify_property_list_changed()
+
+func _process(delta: float) -> void:
+	if not points or len(points) == 0:
+		return  # Don't update if points are missing
+
+	if _mesh == null:
+		_mesh = ImmediateMesh.new()
+		self.mesh = _mesh  # Assign to MeshInstance3D
+
+	# Clear and start a new surface
+	_mesh.clear_surfaces()
+	_mesh.surface_begin(Mesh.PRIMITIVE_TRIANGLES, render_material)
+
+	var total_size = size + (2 * padding)  # Adjusted for padding
+
+	# Generate mesh based on points array
+	for i in range(total_size - 1):
+		for j in range(total_size - 1):
+			# Get vertex positions
+			var v0 = Vector3(i, points[i][j], j) * points_scale
+			var v1 = Vector3(i + 1, points[i + 1][j], j)  * points_scale
+			var v2 = Vector3(i, points[i][j + 1], j + 1)  * points_scale
+			var v3 = Vector3(i + 1, points[i + 1][j + 1], j + 1)  * points_scale
+
+			# Compute normals (approximate using cross product)
+			var normal = -((v1 - v0).cross(v2 - v0)).normalized()
+
+			# Set color based on height for a heatmap effect
+			var color0 = Color(1, 1 - (points[i][j] / max_height), 0)
+			var color1 = Color(1, 1 - (points[i + 1][j] / max_height), 0)
+			var color2 = Color(1, 1 - (points[i][j + 1] / max_height), 0)
+			var color3 = Color(1, 1 - (points[i + 1][j + 1] / max_height), 0)
+
+			# Add two triangles (v0-v1-v2 and v1-v3-v2)
+			_add_triangle(v0, v1, v2, normal, color0, color1, color2)
+			_add_triangle(v1, v3, v2, normal, color1, color3, color2)
+
+	_mesh.surface_end()
+
+# Helper function to add a triangle to ImmediateMesh
+func _add_triangle(v0: Vector3, v1: Vector3, v2: Vector3, normal: Vector3, col0: Color, col1: Color, col2: Color):
+	_mesh.surface_set_normal(normal)
+	_mesh.surface_set_color(col0)
+	_mesh.surface_add_vertex(v0)
+
+	_mesh.surface_set_normal(normal)
+	_mesh.surface_set_color(col1)
+	_mesh.surface_add_vertex(v1)
+
+	_mesh.surface_set_normal(normal)
+	_mesh.surface_set_color(col2)
+	_mesh.surface_add_vertex(v2)
+"
+
+[sub_resource type="Shader" id="Shader_fux7b"]
+code = "shader_type spatial;
+render_mode blend_mix, cull_back, unshaded;
+
+uniform float line_width = 0.05;  // Thickness of grid lines
+uniform float line_falloff = 0.7; // Smooth transition around grid lines
+uniform float x_step = 0.1;  // Grid spacing in X-axis
+uniform float y_step = 0.1;  // Grid spacing in Y-axis
+uniform float z_step = 0.1;  // Grid spacing in Z-axis
+uniform vec3 axes = vec3(1.0, 1.0, 1.0); // Enable/disable grid per axis
+
+uniform float edge_thickness = 0.3;  // Thickness of wireframe edges
+uniform float edge_opacity = 0.7;    // Opacity of wireframe edges
+uniform float vertex_boost = 4.0;    // Exaggerate vertex visibility
+uniform float vertex_glow = 3.0;     // Controls intensity of vertex glow
+
+// Function to determine closeness to grid lines
+float get_closeness(float stp, float value) {
+    return abs(stp / 2.0 - mod(value, stp)) * 2.0 / stp;
+}
+
+// Function to detect wireframe edges (based on screen-space derivatives)
+float detect_wireframe(vec3 vertex) {
+    vec3 dx = fwidth(vertex);  // Get screen-space difference in X direction
+    vec3 dy = fwidth(vertex);  // Get screen-space difference in Y direction
+    vec3 edge_factor = smoothstep(0.0, edge_thickness, dx + dy);
+    return max(edge_factor.x, max(edge_factor.y, edge_factor.z));
+}
+
+// Function to enhance vertex intersections and make them glow
+float detect_vertex(float closeness_x, float closeness_y, float closeness_z) {
+    float vertex_factor = pow(closeness_x * closeness_y * closeness_z, vertex_boost);
+    return smoothstep(0.0, 1.0, vertex_factor * vertex_glow);
+}
+
+void fragment() {
+    vec4 coords = inverse(MODEL_MATRIX) * INV_VIEW_MATRIX * vec4(VERTEX, 1.0);
+    float x = coords.x;
+    float y = coords.y;
+    float z = coords.z;
+
+    ALBEDO = COLOR.rgb;
+
+    // Calculate closeness to grid lines in each axis
+    float closeness_x = get_closeness(x_step, x) * axes.x;
+    float closeness_y = get_closeness(y_step, y) * axes.y;
+    float closeness_z = get_closeness(z_step, z) * axes.z;
+
+    // Compute vertex enhancement (highlights where grid lines meet)
+    float vertex_highlight = detect_vertex(closeness_x, closeness_y, closeness_z);
+
+    // Compute grid alpha (less emphasis on general grid lines)
+    float grid_alpha = max(max(pow(closeness_x, 20), pow(closeness_y, 20)), pow(closeness_z, 20));
+    grid_alpha = smoothstep(0.0, 1.0, grid_alpha * 2.0); // Softens grid lines
+
+    // Compute wireframe effect but reduce prominence
+    float wireframe = detect_wireframe(VERTEX) * edge_opacity * 0.5;
+
+    // Blend the grid + wireframe + vertex highlights
+    float final_alpha = max(grid_alpha * 0.5, wireframe);
+    final_alpha = max(final_alpha, vertex_highlight);  // Prioritize vertex visibility
+	
+	ALBEDO -= final_alpha;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_worgb"]
+resource_local_to_scene = true
+render_priority = 0
+shader = SubResource("Shader_fux7b")
+shader_parameter/line_width = 0.05
+shader_parameter/line_falloff = 0.7
+shader_parameter/x_step = 0.1
+shader_parameter/y_step = 0.005
+shader_parameter/z_step = 0.1
+shader_parameter/axes = Vector3(0, 1, 0)
+shader_parameter/edge_thickness = 0.6
+shader_parameter/edge_opacity = 0.7
+shader_parameter/vertex_boost = 4.0
+shader_parameter/vertex_glow = 3.0
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_rkcl2"]
+
+[node name="HeatmapPlot" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.999999, -0.5, 0, -0.5)
+mesh = SubResource("ImmediateMesh_rkcl2")
+script = SubResource("GDScript_fux7b")
+padding = 1
+max_height = 2.0
+render_material = SubResource("ShaderMaterial_worgb")
+points_scale = 0.1
+points = [[0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0], [0.0, 0.764881, 0.00592601, 1.66278, 0.77301, 1.05673, 0.76089, 1.60924, 1.28909, 1.61038, 1.32299, 0.0], [0.0, 1.93354, 1.09094, 0.66708, 0.996426, 1.28962, 0.528676, 0.5113, 0.0595028, 0.170027, 0.595367, 0.0], [0.0, 0.383834, 1.18512, 1.04308, 1.19129, 1.28166, 0.0698895, 0.201016, 0.0740826, 1.5967, 1.28103, 0.0], [0.0, 1.34206, 1.81617, 0.409871, 1.31075, 0.852357, 1.74099, 0.162607, 1.98499, 0.865393, 0.774552, 0.0], [0.0, 1.69345, 1.46528, 1.40926, 1.18442, 1.14007, 0.688299, 0.513966, 0.288513, 0.015588, 1.79733, 0.0], [0.0, 1.28872, 1.69155, 0.492479, 1.92576, 1.3149, 1.61206, 1.39109, 1.38749, 0.969, 1.91726, 0.0], [0.0, 1.25346, 1.39288, 1.09339, 1.22894, 0.0550306, 1.473, 1.97358, 1.64235, 0.529288, 1.61367, 0.0], [0.0, 1.34244, 0.238794, 0.0374693, 1.0101, 0.013542, 1.08391, 0.669753, 0.883687, 1.99526, 1.06217, 0.0], [0.0, 0.729739, 1.40083, 1.37619, 0.247396, 1.01409, 0.0185619, 0.177223, 1.90353, 0.799728, 1.71269, 0.0], [0.0, 1.283, 1.40528, 0.824266, 1.05061, 0.284346, 1.8494, 0.112063, 1.41155, 1.89823, 0.555919, 0.0], [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]]
+
+[node name="InteractionReceiver" type="Area3D" parent="."]
+script = ExtResource("1_gxkuq")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionReceiver"]
+shape = SubResource("BoxShape3D_rkcl2")

@@ -1,0 +1,139 @@
+[gd_scene load_steps=5 format=3 uid="uid://cy6h0ijakruqa"]
+
+[ext_resource type="PackedScene" uid="uid://c0i76lj0ivv5w" path="res://Controllers/Left/MetaQuestTouchPlus_Left.fbx" id="1_5qltt"]
+[ext_resource type="PackedScene" uid="uid://upq2x85t8hbw" path="res://interaction/interaction_controller.tscn" id="1_yw30f"]
+[ext_resource type="Script" uid="uid://dfk77t40atnsi" path="res://player/tracker_skeleton_modifier_3d.gd" id="2_g1dw6"]
+[ext_resource type="PackedScene" uid="uid://c86hs4j1yo60t" path="res://Controllers/Right/MetaQuestTouchPlus_Right.fbx" id="2_qob7l"]
+
+[node name="Player" type="Node3D"]
+
+[node name="XROrigin3D" type="XROrigin3D" parent="."]
+
+[node name="XRCamera3D" type="XRCamera3D" parent="XROrigin3D"]
+near = 0.005
+
+[node name="XRLeftController3D" type="XRController3D" parent="XROrigin3D"]
+tracker = &"left_hand"
+
+[node name="InteractionController" parent="XROrigin3D/XRLeftController3D" node_paths=PackedStringArray("controller") instance=ExtResource("1_yw30f")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.023)
+controller = NodePath("..")
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="XROrigin3D/XRLeftController3D"]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 0, 0, 0.055)
+bone_name = "left_oculus_controller_world"
+bone_idx = 1
+override_pose = true
+use_external_skeleton = true
+external_skeleton = NodePath("../MetaQuestTouchPlus_Left/Skeleton3D")
+
+[node name="MetaQuestTouchPlus_Left" parent="XROrigin3D/XRLeftController3D" instance=ExtResource("1_5qltt")]
+
+[node name="Skeleton3D" parent="XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left" index="0"]
+bones/1/position = Vector3(0, 0, 5.5)
+bones/1/rotation = Quaternion(0, 1, 0, -4.37114e-08)
+bones/1/scale = Vector3(100, 100, 100)
+bones/2/position = Vector3(0.010468, 0.00248203, -0.011252)
+bones/2/rotation = Quaternion(-0.0788212, 0.0103844, 0.0206173, 0.996621)
+bones/2/scale = Vector3(1, 1, 1)
+bones/3/position = Vector3(-0.0148548, -0.00198535, 0.0247212)
+bones/3/rotation = Quaternion(0.040437, 0.109256, -0.00863228, 0.993153)
+bones/4/position = Vector3(-0.0103206, -0.0217794, 0.0128975)
+bones/4/rotation = Quaternion(0.104869, 0.0799903, 0.123959, 0.983483)
+bones/4/scale = Vector3(1, 1, 1)
+bones/5/position = Vector3(-0.0156074, 0.00596564, 0.00320586)
+bones/5/rotation = Quaternion(-0.0736892, 0.00689783, 0.0107466, 0.997199)
+bones/5/scale = Vector3(1, 1, 1)
+bones/6/position = Vector3(-0.00536613, 0.00425634, -0.00963178)
+bones/6/rotation = Quaternion(-0.0797154, 0.00683273, 0.0107881, 0.996736)
+bones/6/scale = Vector3(1, 1, 1)
+bones/7/position = Vector3(0.0062937, -0.00186804, 0.00868461)
+bones/7/rotation = Quaternion(-0.0733958, 0.119254, 0.00994497, 0.990097)
+
+[node name="TrackerSkeletonModifier3D" type="SkeletonModifier3D" parent="XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left/Skeleton3D" index="0" node_paths=PackedStringArray("tracker")]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
+script = ExtResource("2_g1dw6")
+trigger_bone = "left_b_trigger_front"
+grip_bone = "left_b_trigger_grip"
+ax_bone = "b_button_x"
+by_bone = "b_button_y"
+menu_bone = "left_b_button_oculus"
+joystick_bone = "left_b_thumbstick"
+tracker = NodePath("../../..")
+metadata/_custom_type_script = "uid://dfk77t40atnsi"
+
+[node name="oculus_controller_l_MeshX" parent="XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left/Skeleton3D" index="1"]
+lod_bias = 128.0
+
+[node name="XRRightController3D" type="XRController3D" parent="XROrigin3D"]
+tracker = &"right_hand"
+
+[node name="InteractionController" parent="XROrigin3D/XRRightController3D" node_paths=PackedStringArray("controller") instance=ExtResource("1_yw30f")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.023)
+controller = NodePath("..")
+
+[node name="BoneAttachment3D" type="BoneAttachment3D" parent="XROrigin3D/XRRightController3D"]
+transform = Transform3D(-1, 0, 8.74228e-08, 0, 1, 0, -8.74228e-08, 0, -1, 0, 0, 0.055)
+bone_name = "right_oculus_controller_world"
+bone_idx = 1
+override_pose = true
+use_external_skeleton = true
+external_skeleton = NodePath("../MetaQuestTouchPlus_Right/Skeleton3D")
+
+[node name="MetaQuestTouchPlus_Right" parent="XROrigin3D/XRRightController3D" instance=ExtResource("2_qob7l")]
+
+[node name="Skeleton3D" parent="XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right" index="0"]
+bones/1/position = Vector3(0, 0, 5.5)
+bones/1/rotation = Quaternion(0, 1, 0, 4.37114e-08)
+bones/1/scale = Vector3(100, 100, 100)
+bones/5/position = Vector3(0.0154212, 0.00651547, 0.00279352)
+
+[node name="TrackerSkeletonModifier3D" type="SkeletonModifier3D" parent="XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right/Skeleton3D" index="0" node_paths=PackedStringArray("tracker")]
+_import_path = NodePath("")
+unique_name_in_owner = false
+process_mode = 0
+process_priority = 0
+process_physics_priority = 0
+process_thread_group = 0
+physics_interpolation_mode = 0
+auto_translate_mode = 0
+editor_description = ""
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+rotation_edit_mode = 0
+rotation_order = 2
+top_level = false
+visible = true
+visibility_parent = NodePath("")
+active = true
+influence = 1.0
+script = ExtResource("2_g1dw6")
+trigger_bone = "right_b_trigger_front"
+grip_bone = "right_b_trigger_grip"
+ax_bone = "b_button_a"
+by_bone = "b_button_b"
+menu_bone = "right_b_button_oculus"
+joystick_bone = "right_b_thumbstick"
+tracker = NodePath("../../..")
+metadata/_custom_type_script = "uid://dfk77t40atnsi"
+
+[node name="oculus_controller_r_MeshX" parent="XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right/Skeleton3D" index="1"]
+lod_bias = 128.0
+
+[editable path="XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left"]
+[editable path="XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right"]
