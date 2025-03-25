@@ -31,6 +31,6 @@ func _process(delta: float) -> void:
 	elif state == WebSocketPeer.STATE_CLOSED:
 		var code = socket.get_close_code()
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
-		print("Attempting reconnect")		
+		print("Attempting reconnect")
 		set_process(false)
 		get_tree().create_timer(3.0).timeout.connect(func(): try_connect(server_url))
