@@ -1,9 +1,13 @@
 extends Node
 
-@export var server_url = "ws://localhost:8765"
+var server_url = "ws://localhost:8765"
 
 var socket = WebSocketPeer.new()
 
+signal connected
+signal plot_added(plot_id, data)
+signal plot_updated(plot_id, data)
+signal plot_removed(plot_id)
 
 func _ready() -> void:
 	try_connect(server_url)
@@ -25,7 +29,9 @@ func _process(delta: float) -> void:
 	var state = socket.get_ready_state()
 	if state == WebSocketPeer.STATE_OPEN:
 		while socket.get_available_packet_count():
-			print("Got data from server: ", socket.get_packet().get_string_from_utf8())
+			var data = socket.get_packet().get_string_from_utf8()
+			print("Got data from server: ", data)
+			process_new_message(data)
 	elif state == WebSocketPeer.STATE_CLOSING:
 		pass
 	elif state == WebSocketPeer.STATE_CLOSED:
@@ -34,3 +40,22 @@ func _process(delta: float) -> void:
 		print("Attempting reconnect")
 		set_process(false)
 		get_tree().create_timer(3.0).timeout.connect(func(): try_connect(server_url))
+
+func process_new_message(data: String):
+	var message = JSON.parse_string(data)
+	if message == null:
+		push_error("Received bad data from server!")
+		return
+	
+	match message.type:
+		"CONNECTED":
+			connected.emit()
+		"PLOT_ADDED":
+			plot_added.emit(message.plot_id, message.data)
+		"PLOT_UPDATED":
+			plot_updated.emit(message.plot_id, message.data)
+		"PLOT_REMOVED":
+			plot_removed.emit(message.plot_id)
+		_:
+			push_error("Unknown message from server! %s" % message.type)
+			return

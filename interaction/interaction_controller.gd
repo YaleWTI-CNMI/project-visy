@@ -13,6 +13,7 @@ extends Node3D
 @onready var _press_initial_location = Vector3.ZERO
 
 # ---
+	
 
 var _current_receiver: InteractionReceiver
 
@@ -25,15 +26,11 @@ var _current_receiver: InteractionReceiver
 func _ready() -> void:
 	extent = extent
 	
-	controller.button_pressed.connect(_on_button_pressed)
-	controller.button_released.connect(_on_button_released)
-	
 	return_pointer()
 	pass
 
 func is_acquire_button_pressed():
-	controller.is_button_pressed("grip_click")
-	return
+	return controller.is_button_pressed("grip_click")
 
 func _process(delta: float) -> void:
 	_target_switch_think() # Called when allowed to switch targets
@@ -44,9 +41,9 @@ func _target_switch_think():
 	var collider = $RayCast3D.get_collider()
 	var collision_point = $RayCast3D.get_collision_point()
 	
-	if _current_receiver != collider and not is_acquire_button_pressed():
+	if not is_acquire_button_pressed() and _current_receiver:
 		_release_ireceiver()
-	elif collider is InteractionReceiver and is_acquire_button_pressed():
+	if collider != _current_receiver and collider is InteractionReceiver and is_acquire_button_pressed() and not _current_receiver:
 		_acquire_ireceiver(collider as InteractionReceiver)
 
 func _current_receiver_think():
@@ -54,14 +51,6 @@ func _current_receiver_think():
 
 	if _current_receiver:
 		_current_receiver.hit(self, collision_point)
-
-func _on_button_pressed(name):
-	if name == "grip_click" and _current_receiver != null:
-		_current_receiver.on_acquire(self)
-	
-func _on_button_released(name):
-	if name == "grip_click" and _current_receiver != null:
-		_current_receiver.on_release(self)
 
 func _acquire_ireceiver(ireceiver: InteractionReceiver):
 	assert(_current_receiver == null, 

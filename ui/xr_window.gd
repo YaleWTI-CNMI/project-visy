@@ -1,22 +1,32 @@
+@tool
 extends Node3D
 
-@export var basic_resolution: int = 3840
-@export var window_size: Vector2 = Vector2(25.0/100, 40.0/100):
+@export var ui_scene: PackedScene
+
+@export var window_scale: float = 0.05:
 	set(value):
-		window_size = value
+		window_scale = value
+		_update_window_size()
+
+
+@export var size_2d: Vector2 = Vector2(500, 500):
+	set(value):
+		size_2d = value
 		_update_window_size()
 
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var subviewport: SubViewport = $MeshInstance3D/SubViewport
 @onready var canvas: CanvasLayer = $MeshInstance3D/SubViewport/CanvasLayer
-@onready var initial_control = get_node_or_null("InitialContent")
+@onready var interactionCollisionShape: CollisionShape3D = $InteractionReceiver/InteractionCollisionShape
 
 var current_control: Control = null
 
+var plane_size: Vector2 = Vector2.ZERO
+
 func _ready() -> void:
-	if initial_control != null:
-		initial_control.get_parent().remove_child(initial_control)
-		set_content(initial_control)
+	if not Engine.is_editor_hint() and ui_scene:
+		var node = ui_scene.instantiate()
+		canvas.add_child(node)
 
 	_update_window_size()
 
@@ -31,17 +41,19 @@ func set_content(control: Control) -> void:
 	_update_window_size()
 
 func _update_window_size() -> void:
-	var plane_mesh = PlaneMesh.new()
-	plane_mesh.size = window_size
-	plane_mesh.material = StandardMaterial3D.new()
-	plane_mesh.material.transparency = BaseMaterial3D.Transparency.TRANSPARENCY_ALPHA_SCISSOR
-	plane_mesh.material.albedo_texture = subviewport.get_texture()
-	plane_mesh.request_update()
+	if not self.is_node_ready():
+		return
+		
+	var mesh = mesh_instance.mesh as PlaneMesh
+	var boxShape = interactionCollisionShape.shape as BoxShape3D
 	
-	var canvas_size = basic_resolution * window_size
+	subviewport.size = size_2d
+	subviewport.size_2d_override = size_2d
 	
-	subviewport.size = canvas_size
-	mesh_instance.mesh = plane_mesh
+	var plane_scale = window_scale / min(size_2d.x, size_2d.y)
+	plane_size = size_2d * plane_scale
 	
-	if current_control != null:
-		current_control.set_size(canvas_size)
+	mesh.size = plane_size
+	mesh.request_update()
+	
+	boxShape.size = Vector3(plane_size.x, plane_size.y, 0.01)

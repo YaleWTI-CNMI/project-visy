@@ -3,6 +3,7 @@
 [ext_resource type="Script" uid="uid://duhm0hfdfdtg6" path="res://interaction/interaction_controller.gd" id="1_uu2g2"]
 
 [sub_resource type="ImmediateMesh" id="ImmediateMesh_uu2g2"]
+resource_local_to_scene = true
 
 [sub_resource type="GDScript" id="GDScript_fi52h"]
 script/source = "@tool
@@ -111,7 +112,6 @@ collision_mask = 256
 hit_from_inside = true
 collide_with_areas = true
 collide_with_bodies = false
-debug_shape_thickness = 1
 
 [node name="RibbonMeshRemoteTransform3D" type="RemoteTransform3D" parent="."]
 remote_path = NodePath("../RibbonMesh3D")

@@ -1,44 +1,114 @@
-[gd_scene load_steps=5 format=3 uid="uid://c0n8fp6o5t2mh"]
+[gd_scene load_steps=9 format=3 uid="uid://c0n8fp6o5t2mh"]
 
 [ext_resource type="Script" uid="uid://dixjwil0ph5pd" path="res://ui/xr_window.gd" id="1_ftaok"]
+[ext_resource type="PackedScene" uid="uid://cmdmiakst0imi" path="res://ui/test_ui.tscn" id="2_k4wdk"]
+[ext_resource type="Texture2D" uid="uid://deibluoifynlo" path="res://ui/Cursor.png" id="3_rgdj5"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_c037f"]
+[sub_resource type="PlaneMesh" id="PlaneMesh_rgdj5"]
+size = Vector2(0.3, 0.3)
+orientation = 2
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_b48tu"]
-material = SubResource("StandardMaterial3D_c037f")
-size = Vector2(1, 1)
+[sub_resource type="ViewportTexture" id="ViewportTexture_k4wdk"]
+viewport_path = NodePath("MeshInstance3D/SubViewport")
 
-[sub_resource type="GDScript" id="GDScript_pk1c3"]
-script/source = "extends MeshInstance3D
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rgdj5"]
+resource_local_to_scene = true
+transparency = 2
+alpha_scissor_threshold = 0.777
+alpha_antialiasing_mode = 0
+cull_mode = 2
+shading_mode = 0
+albedo_texture = SubResource("ViewportTexture_k4wdk")
+refraction_scale = 1.0
 
+[sub_resource type="GDScript" id="GDScript_k4wdk"]
+script/source = "extends InteractionReceiver
 
-# Called when the node enters the scene tree for the first time.
-func _ready() -> void:
+func acquire(icontroller: InteractionController):
 	pass
-	#self.material_override
-	#(self.mesh.surface_get_material(0) as StandardMaterial3D).albedo_texture = $SubViewport.get_texture()
 
+func hit(icontroller: InteractionController, interaction_point: Vector3):
+	var pos_2d = project_point_to_plane_uv(interaction_point, owner.transform)
+	pos_2d.x = pos_2d.x / (owner.plane_size.x / 2)
+	pos_2d.y = pos_2d.y / (owner.plane_size.y / 2)
+	
+	pos_2d = (pos_2d + Vector2(1.0, 1.0)) / 2
+	
+	pos_2d = Vector2(pos_2d.x * owner.size_2d.x, owner.size_2d.y - pos_2d.y * owner.size_2d.y)
+	pos_2d -= %Cursor.size / 2
+	
+	%Cursor.global_position = pos_2d
+	pass
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
+func release(icontroller: InteractionController):
+	pass
+
 func _process(delta: float) -> void:
 	pass
+
+func project_point_to_plane_uv(point: Vector3, plane_transform: Transform3D) -> Vector2:
+	# Convert the world point into the plane's local space
+	var local_point: Vector3 = plane_transform.affine_inverse() * point
+
+	# Return the X and Z or X and Y components depending on your plane's orientation.
+	# If your plane is flat (like a floor), you'd use X and Z
+	# But if your plane's \"surface\" is defined by its XY plane, we use X and Y
+	return Vector2(local_point.x, local_point.y)
 "
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_k4wdk"]
+size = Vector3(0.3, 0.3, 0.01)
 
 [node name="XRWindow" type="Node3D"]
 script = ExtResource("1_ftaok")
+window_scale = 0.3
+size_2d = Vector2(800, 800)
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
-mesh = SubResource("PlaneMesh_b48tu")
+mesh = SubResource("PlaneMesh_rgdj5")
 skeleton = NodePath("../../..")
-script = SubResource("GDScript_pk1c3")
+surface_material_override/0 = SubResource("StandardMaterial3D_rgdj5")
 
 [node name="SubViewport" type="SubViewport" parent="MeshInstance3D"]
+unique_name_in_owner = true
 transparent_bg = true
 handle_input_locally = false
 screen_space_aa = 1
 gui_embed_subwindows = true
-size = Vector2i(1920, 1920)
+size = Vector2i(800, 800)
+size_2d_override = Vector2i(800, 800)
 size_2d_override_stretch = true
 
 [node name="CanvasLayer" type="CanvasLayer" parent="MeshInstance3D/SubViewport"]
+
+[node name="TestUI" parent="MeshInstance3D/SubViewport/CanvasLayer" instance=ExtResource("2_k4wdk")]
+
+[node name="CursorLayer" type="CanvasLayer" parent="MeshInstance3D/SubViewport"]
+layer = 128
+
+[node name="Cursor" type="TextureRect" parent="MeshInstance3D/SubViewport/CursorLayer"]
+unique_name_in_owner = true
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -400.0
+offset_top = -400.0
+offset_right = -336.0
+offset_bottom = -336.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(50, 50)
+texture = ExtResource("3_rgdj5")
+
+[node name="InteractionReceiver" type="Area3D" parent="."]
+script = SubResource("GDScript_k4wdk")
+metadata/_custom_type_script = "uid://dxn6p4w7d4ogi"
+
+[node name="InteractionCollisionShape" type="CollisionShape3D" parent="InteractionReceiver"]
+shape = SubResource("BoxShape3D_k4wdk")
+
+[node name="PointerTest" type="CSGSphere3D" parent="."]
+visible = false
+radius = 0.01
