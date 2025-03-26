@@ -176,7 +176,7 @@ orientation = 2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_reog7"]
 
-[node name="ScatterPlot" type="Node3D"]
+[node name="ScatterPlot" type="Node3D" groups=["plots"]]
 script = SubResource("GDScript_lny24")
 point_scene = SubResource("PackedScene_g01s7")
 point_mesh = SubResource("SphereMesh_8kqjr")

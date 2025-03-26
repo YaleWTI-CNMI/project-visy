@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://dskyy3mp8r402"]
+[gd_scene load_steps=9 format=3 uid="uid://dskyy3mp8r402"]
 
 [ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
 [ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
@@ -160,6 +160,26 @@ ambient_light_color = Color(0.491583, 0.491583, 0.491583, 1)
 tonemap_mode = 3
 adjustment_saturation = 0.01
 
+[sub_resource type="GDScript" id="GDScript_2glrg"]
+resource_name = "PlotSpawner"
+script/source = "extends Node3D
+
+func _ready():
+	WSClient.plot_added.connect(_on_plot_added)
+	WSClient.disconnected.connect(_on_client_disconnected)
+
+
+
+func _on_plot_added(data):
+	var plot_scene: PackedScene = load(\"res://plot_types/%s/plot.tscn\" % data.type)
+	var new_plot = plot_scene.instantiate()
+	
+	get_tree().root.add_child(new_plot)
+
+func _on_client_disconnected(code):
+	get_tree().call_group(\"plots\", \"queue_free\")
+"
+
 [node name="Node3D" type="Node3D"]
 
 [node name="XRManager" type="Node3D" parent="." node_paths=PackedStringArray("environment")]
@@ -179,3 +199,6 @@ sky_mode = 1
 [node name="XRWindow" parent="." instance=ExtResource("1_dkjm7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.205879, 1.13064, -0.329808)
 ui_scene = ExtResource("2_qaduo")
+
+[node name="PlotSpawner" type="Node3D" parent="."]
+script = SubResource("GDScript_2glrg")

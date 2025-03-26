@@ -3,43 +3,62 @@ extends Node
 var server_url = "ws://localhost:8765"
 
 var socket = WebSocketPeer.new()
+var is_connected: bool = false
 
 signal connected
-signal plot_added(plot_id, data)
-signal plot_updated(plot_id, data)
-signal plot_removed(plot_id)
+signal disconnected(code)
+
+signal plot_added(data)
+signal plot_updated(data)
+signal plot_removed(data)
 
 func _ready() -> void:
-	try_connect(server_url)
+	socket.inbound_buffer_size = 200000000
+	var thread = Thread.new()
+	thread.start(_main, Thread.PRIORITY_HIGH)
 
-func try_connect(url):
+func try_connect(url) -> bool:
 	var err = socket.connect_to_url(url)
 	if err != OK:
 		print("Unable to connect")
 		print("Attempting reconnect")
-		get_tree().create_timer(3.0).timeout.connect(func(): try_connect(server_url))
-		set_process(false)
 	else:
 		print("Connected")
-		set_process(true)
+	
+	return err == OK
 
-func _process(delta: float) -> void:
-	socket.poll()
 
-	var state = socket.get_ready_state()
-	if state == WebSocketPeer.STATE_OPEN:
-		while socket.get_available_packet_count():
-			var data = socket.get_packet().get_string_from_utf8()
-			print("Got data from server: ", data)
-			process_new_message(data)
-	elif state == WebSocketPeer.STATE_CLOSING:
-		pass
-	elif state == WebSocketPeer.STATE_CLOSED:
+func _main():
+	while true:
+		if not try_connect(server_url):
+			await get_tree().create_timer(3.0).timeout
+			continue
+		
+		socket.poll()
+		var state = socket.get_ready_state()
+		
+		while state != WebSocketPeer.STATE_CLOSED:
+			if state == WebSocketPeer.STATE_OPEN:
+				if is_connected == false:
+					connected.emit()
+					is_connected = true
+				
+				socket.set_no_delay(true)
+				while socket.get_available_packet_count():
+					var data = socket.get_packet().get_string_from_utf8()
+					print("Got data from server: ", data)
+					process_new_message(data)
+			elif state == WebSocketPeer.STATE_CLOSING:
+				pass
+			
+			socket.poll()
+			state = socket.get_ready_state()
+		
 		var code = socket.get_close_code()
+		disconnected.emit.call_deferred(code)
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
 		print("Attempting reconnect")
-		set_process(false)
-		get_tree().create_timer(3.0).timeout.connect(func(): try_connect(server_url))
+
 
 func process_new_message(data: String):
 	var message = JSON.parse_string(data)
@@ -49,13 +68,13 @@ func process_new_message(data: String):
 	
 	match message.type:
 		"CONNECTED":
-			connected.emit()
+			connected.emit.call_deferred()
 		"PLOT_ADDED":
-			plot_added.emit(message.plot_id, message.data)
+			plot_added.emit.call_deferred(message.data)
 		"PLOT_UPDATED":
-			plot_updated.emit(message.plot_id, message.data)
+			plot_updated.emit.call_deferred(message.data)
 		"PLOT_REMOVED":
-			plot_removed.emit(message.plot_id)
+			plot_removed.emit.call_deferred(message.data)
 		_:
 			push_error("Unknown message from server! %s" % message.type)
 			return
