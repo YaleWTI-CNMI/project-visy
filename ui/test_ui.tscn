@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://cmdmiakst0imi"]
+[gd_scene load_steps=9 format=3 uid="uid://cmdmiakst0imi"]
 
 [ext_resource type="Theme" uid="uid://dqjl0oqkkyb1o" path="res://ui/themes/default_theme.tres" id="1_7bmgw"]
 [ext_resource type="Texture2D" uid="uid://dv65wdbpnunnr" path="res://icon.svg" id="1_b3hg4"]
@@ -8,6 +8,17 @@ font_size = 40
 
 [sub_resource type="LabelSettings" id="LabelSettings_kpam4"]
 font_size = 40
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hnra0"]
+bg_color = Color(0, 0.722117, 0.290701, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xncuv"]
+bg_color = Color(0.640632, 0.601781, 0.448469, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oe7vm"]
+bg_color = Color(0, 0.722117, 0.290701, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p8myr"]
 
 [node name="TestUI" type="PanelContainer"]
 clip_contents = true
@@ -33,6 +44,15 @@ uppercase = true
 layout_mode = 2
 text = "This is a test of the UI windows in VISY!"
 label_settings = SubResource("LabelSettings_kpam4")
+
+[node name="Button" type="Button" parent="VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 71
+theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_hnra0")
+theme_override_styles/hover = SubResource("StyleBoxFlat_xncuv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_oe7vm")
+theme_override_styles/normal = SubResource("StyleBoxFlat_p8myr")
+text = "Test buttony"
 
 [node name="Control" type="AspectRatioContainer" parent="VBoxContainer"]
 layout_mode = 2

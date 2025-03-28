@@ -1,8 +1,6 @@
 extends Area3D
 class_name InteractionReceiver
 
-var _icontroller: InteractionController = null
-
 func _ready():
 	self.collision_layer = (1<<8)
 	self.collision_mask = (1<<8)

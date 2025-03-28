@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://dxn6p4w7d4ogi" path="res://interaction/interaction_receiver.gd" id="1_gxkuq"]
 
-[sub_resource type="ImmediateMesh" id="ImmediateMesh_gxkuq"]
+[sub_resource type="ImmediateMesh" id="ImmediateMesh_ahnty"]
 
 [sub_resource type="GDScript" id="GDScript_fux7b"]
 script/source = "@tool
@@ -175,7 +175,7 @@ shader_parameter/vertex_glow = 3.0
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.999999, -0.5, 0, -0.5)
-mesh = SubResource("ImmediateMesh_gxkuq")
+mesh = SubResource("ImmediateMesh_ahnty")
 script = SubResource("GDScript_fux7b")
 padding = 1
 max_height = 2.0

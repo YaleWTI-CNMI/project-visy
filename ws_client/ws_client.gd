@@ -4,6 +4,8 @@ var server_url = "ws://localhost:8765"
 
 var socket = WebSocketPeer.new()
 var is_connected: bool = false
+var queue: Array = []
+
 
 signal connected
 signal disconnected(code)
@@ -40,14 +42,21 @@ func _main():
 		while state != WebSocketPeer.STATE_CLOSED:
 			if state == WebSocketPeer.STATE_OPEN:
 				if is_connected == false:
-					connected.emit()
+					connected.emit.call_deferred()
 					is_connected = true
 				
 				socket.set_no_delay(true)
+				
+				# Receive
 				while socket.get_available_packet_count():
 					var data = socket.get_packet().get_string_from_utf8()
-					print("Got data from server: ", data)
 					process_new_message(data)
+				
+				# Send
+				while len(queue):
+					var message_str = queue.pop_front()
+					socket.send_text(message_str)
+				
 			elif state == WebSocketPeer.STATE_CLOSING:
 				pass
 			
@@ -78,3 +87,7 @@ func process_new_message(data: String):
 		_:
 			push_error("Unknown message from server! %s" % message.type)
 			return
+
+func queue_message(data):
+	var message_str = JSON.stringify(data)
+	queue.append(message_str)

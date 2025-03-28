@@ -2,7 +2,7 @@
 
 [ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
 [ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
-[ext_resource type="PackedScene" uid="uid://cmdmiakst0imi" path="res://ui/test_ui.tscn" id="2_qaduo"]
+[ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="3_2glrg"]
 
 [sub_resource type="GDScript" id="GDScript_k2yeb"]
 script/source = "extends Node3D
@@ -167,14 +167,29 @@ script/source = "extends Node3D
 func _ready():
 	WSClient.plot_added.connect(_on_plot_added)
 	WSClient.disconnected.connect(_on_client_disconnected)
+	WSClient.plot_updated.connect(_on_plot_updated)
+	
 
 
 
 func _on_plot_added(data):
-	var plot_scene: PackedScene = load(\"res://plot_types/%s/plot.tscn\" % data.type)
-	var new_plot = plot_scene.instantiate()
+	var plot_scene: PackedScene = load(\"res://plot_types/%s/plot.tscn\" % data.result.type)
+	var new_plot: Node3D = plot_scene.instantiate()
 	
 	get_tree().root.add_child(new_plot)
+	new_plot.global_position = self.global_position
+	
+	if not new_plot.is_node_ready():
+		await new_plot.ready
+	
+	new_plot.set_meta(\"id\", data.id)
+	new_plot.update_data(data)
+	new_plot.add_to_group(\"plots\")
+	
+func _on_plot_updated(data):
+	for plot in get_tree().get_nodes_in_group(\"plots\"):
+		if plot.get_meta(\"id\") == data.id:
+			plot.update_data(data)
 
 func _on_client_disconnected(code):
 	get_tree().call_group(\"plots\", \"queue_free\")
@@ -197,8 +212,11 @@ transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 
 sky_mode = 1
 
 [node name="XRWindow" parent="." instance=ExtResource("1_dkjm7")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.205879, 1.13064, -0.329808)
-ui_scene = ExtResource("2_qaduo")
+transform = Transform3D(0.693112, 0, -0.720829, 0, 1, 0, 0.720829, 0, 0.693112, 0.719632, 1.001, -0.532356)
+ui_scene = ExtResource("3_2glrg")
+window_scale = 0.35
+size_2d = Vector2(800, 500)
 
 [node name="PlotSpawner" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15974, -0.500205)
 script = SubResource("GDScript_2glrg")

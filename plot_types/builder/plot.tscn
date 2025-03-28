@@ -1,0 +1,105 @@
+[gd_scene load_steps=5 format=3 uid="uid://dim10atu52gfo"]
+
+[sub_resource type="GDScript" id="GDScript_mxdrw"]
+resource_name = "BuilderPlot"
+script/source = "extends Node3D
+
+@export var default_material: BaseMaterial3D
+
+var objects: Dictionary[String, Node3D]
+var last_result: Dictionary
+
+func update_data(data):
+	var new_object_defs = data.result.objects as Dictionary[String, Dictionary]
+	last_result = data.result
+	
+	for old_id in objects.keys():
+		if old_id in new_object_defs.keys():
+			update_object(objects[old_id], new_object_defs[old_id])
+			new_object_defs.erase(old_id)
+		else:
+			delete_object(objects[old_id])
+			objects.erase(old_id)
+			
+	
+	for new_id in new_object_defs.keys():
+		objects[new_id] = (create_object(new_object_defs[new_id]))
+		update_object(objects[new_id], new_object_defs[new_id])
+
+
+# ====================
+
+func create_object(new_def) -> Node3D:
+	match new_def.type:
+		\"line\":
+			var mesh_inst = MeshInstance3D.new()
+			var im = ImmediateMesh.new()
+			mesh_inst.mesh = im
+
+			self.add_child(mesh_inst)
+			mesh_inst.position = Vector3.ZERO
+			return mesh_inst
+			
+	return null
+	
+	
+func update_object(old_object: Node3D, new_def):
+	var mesh_inst = old_object as MeshInstance3D
+	var im = mesh_inst.mesh as ImmediateMesh
+	
+	im.clear_surfaces()
+	var num_points = len(new_def.x)
+
+	if num_points < 2:
+		return
+	
+	im.surface_begin(Mesh.PRIMITIVE_LINES, default_material)
+	
+	var add_v = func(i):
+		if new_def.color:
+			var color = Color(new_def.color.r, new_def.color.g, new_def.color.b, 1.0)
+			im.surface_set_color(color)
+		
+		var x = remap(new_def.x[i], last_result.xlim[0], last_result.xlim[1], -1, 1)
+		var y = remap(new_def.y[i], last_result.ylim[0], last_result.ylim[1], -1, 1)
+		var z = remap(new_def.z[i], last_result.zlim[0], last_result.zlim[1], -1, 1)
+		
+		im.surface_add_vertex(Vector3(x, y, z))
+			
+	var i = 1
+	while i < num_points:
+		add_v.call(i - 1)
+		add_v.call(i)
+		i += 1
+	
+	im.surface_end()
+	pass
+
+
+
+func delete_object(old_object: Node3D):
+	old_object.queue_free()
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_mxdrw"]
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3shir"]
+transparency = 1
+blend_mode = 1
+cull_mode = 2
+shading_mode = 0
+albedo_color = Color(0.733333, 0.898039, 0.937255, 0.388235)
+
+[sub_resource type="SphereMesh" id="SphereMesh_f4llw"]
+material = SubResource("StandardMaterial3D_3shir")
+radius = 0.99
+height = 1.99
+
+[node name="BuilderPlot" type="Node3D"]
+script = SubResource("GDScript_mxdrw")
+default_material = SubResource("StandardMaterial3D_mxdrw")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_f4llw")

@@ -29,9 +29,6 @@ func _ready() -> void:
 	return_pointer()
 	pass
 
-func is_acquire_button_pressed():
-	return controller.is_button_pressed("grip_click")
-
 func _process(delta: float) -> void:
 	_target_switch_think() # Called when allowed to switch targets
 	
@@ -41,9 +38,9 @@ func _target_switch_think():
 	var collider = $RayCast3D.get_collider()
 	var collision_point = $RayCast3D.get_collision_point()
 	
-	if not is_acquire_button_pressed() and _current_receiver:
+	if _current_receiver:
 		_release_ireceiver()
-	if collider != _current_receiver and collider is InteractionReceiver and is_acquire_button_pressed() and not _current_receiver:
+	if collider != _current_receiver and collider is InteractionReceiver and not _current_receiver:
 		_acquire_ireceiver(collider as InteractionReceiver)
 
 func _current_receiver_think():

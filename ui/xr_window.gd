@@ -1,7 +1,19 @@
 @tool
 extends Node3D
 
-@export var ui_scene: PackedScene
+@export_tool_button("Reload Preview UI") var reload_preview_ui = on_reload_preview_ui 
+	
+func on_reload_preview_ui():
+	ui_scene = ui_scene
+
+@export var ui_scene: PackedScene:
+	set(new_val):
+		ui_scene = new_val
+		if Engine.is_editor_hint():
+			if ui_scene:
+				set_content(ui_scene.instantiate())
+			else:
+				set_content(preload("res://ui/test_ui.tscn").instantiate())
 
 @export var window_scale: float = 0.05:
 	set(value):
@@ -16,7 +28,7 @@ extends Node3D
 
 @onready var mesh_instance: MeshInstance3D = $MeshInstance3D
 @onready var subviewport: SubViewport = $MeshInstance3D/SubViewport
-@onready var canvas: CanvasLayer = $MeshInstance3D/SubViewport/CanvasLayer
+@onready var canvas: CanvasLayer = %CanvasLayer
 @onready var interactionCollisionShape: CollisionShape3D = $InteractionReceiver/InteractionCollisionShape
 
 var current_control: Control = null
@@ -24,9 +36,8 @@ var current_control: Control = null
 var plane_size: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
-	if not Engine.is_editor_hint() and ui_scene:
-		var node = ui_scene.instantiate()
-		canvas.add_child(node)
+	if ui_scene:
+		set_content(ui_scene.instantiate())
 
 	_update_window_size()
 

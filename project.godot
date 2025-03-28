@@ -23,10 +23,6 @@ WSClient="*res://ws_client/ws_client.gd"
 
 project/assembly_name="project-visy"
 
-[global_group]
-
-plots="Group containing all plots"
-
 [layer_names]
 
 3d_physics/layer_9="Interaction"
