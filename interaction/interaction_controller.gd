@@ -34,13 +34,16 @@ func _process(delta: float) -> void:
 	
 	_current_receiver_think()
 	
+	extent = extent + delta * controller.get_vector2("primary").y
+	_aim_node.global_transform = _aim_node.global_transform.rotated(Vector3.LEFT, delta * controller.get_vector2("primary").x)
+	
 func _target_switch_think():
 	var collider = $RayCast3D.get_collider()
 	var collision_point = $RayCast3D.get_collision_point()
 	
-	if _current_receiver:
-		_release_ireceiver()
-	if collider != _current_receiver and collider is InteractionReceiver and not _current_receiver:
+	if collider != _current_receiver and collider is InteractionReceiver:
+		if _current_receiver:
+			_release_ireceiver()
 		_acquire_ireceiver(collider as InteractionReceiver)
 
 func _current_receiver_think():
@@ -71,7 +74,7 @@ func grab_pointer(new_parent: Node3D, global_offset: Vector3 = Vector3.ZERO):
 
 func return_pointer():
 	_attached_node.reparent(_aim_node)
-	_attached_node.position = Vector3(0, 0, -extent)
+	_attached_node.position = Vector3(0, 0, 0)
 
 func get_aim_node():
 	return _aim_node

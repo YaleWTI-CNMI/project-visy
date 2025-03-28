@@ -1,7 +1,7 @@
 extends Area3D
 class_name InteractionReceiver
 
-func _ready():
+func _init():
 	self.collision_layer = (1<<8)
 	self.collision_mask = (1<<8)
 	pass

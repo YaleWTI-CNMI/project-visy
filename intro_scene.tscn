@@ -1,8 +1,9 @@
-[gd_scene load_steps=9 format=3 uid="uid://dskyy3mp8r402"]
+[gd_scene load_steps=13 format=3 uid="uid://dskyy3mp8r402"]
 
 [ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
 [ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
 [ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="3_2glrg"]
+[ext_resource type="Script" uid="uid://bg66wus0c31cl" path="res://interaction/interaction_mover.gd" id="4_o8unc"]
 
 [sub_resource type="GDScript" id="GDScript_k2yeb"]
 script/source = "extends Node3D
@@ -160,6 +161,15 @@ ambient_light_color = Color(0.491583, 0.491583, 0.491583, 1)
 tonemap_mode = 3
 adjustment_saturation = 0.01
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_b1u3c"]
+size = Vector3(0.655, 0.015, 0.015)
+
+[sub_resource type="BoxMesh" id="BoxMesh_o8unc"]
+size = Vector3(0.655, 0.015, 0.015)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b1u3c"]
+shading_mode = 0
+
 [sub_resource type="GDScript" id="GDScript_2glrg"]
 resource_name = "PlotSpawner"
 script/source = "extends Node3D
@@ -216,6 +226,20 @@ transform = Transform3D(0.693112, 0, -0.720829, 0, 1, 0, 0.720829, 0, 0.693112, 
 ui_scene = ExtResource("3_2glrg")
 window_scale = 0.35
 size_2d = Vector2(800, 500)
+
+[node name="InteractionMover" type="Area3D" parent="XRWindow" node_paths=PackedStringArray("remote_path")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+script = ExtResource("4_o8unc")
+remote_path = NodePath("..")
+metadata/_custom_type_script = "uid://bg66wus0c31cl"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="XRWindow/InteractionMover"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00390622, -0.166095, 0.0342275)
+shape = SubResource("BoxShape3D_b1u3c")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XRWindow/InteractionMover/CollisionShape3D"]
+mesh = SubResource("BoxMesh_o8unc")
+surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
 [node name="PlotSpawner" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15974, -0.500205)
