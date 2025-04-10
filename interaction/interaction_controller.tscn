@@ -99,12 +99,12 @@ func _process(delta: float) -> void:
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_qltbt"]
 resource_local_to_scene = true
-blend_mode = 1
 shading_mode = 0
 vertex_color_use_as_albedo = true
 
 [node name="InteractionController" type="Node3D"]
 script = ExtResource("1_uu2g2")
+extent = 3.0
 
 [node name="RayCast3D" type="RayCast3D" parent="."]
 target_position = Vector3(0, 0, -1)
@@ -112,6 +112,7 @@ collision_mask = 256
 hit_from_inside = true
 collide_with_areas = true
 collide_with_bodies = false
+debug_shape_thickness = 1
 
 [node name="RibbonMeshRemoteTransform3D" type="RemoteTransform3D" parent="."]
 remote_path = NodePath("../RibbonMesh3D")

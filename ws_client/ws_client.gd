@@ -91,3 +91,15 @@ func process_new_message(data: String):
 func queue_message(data):
 	var message_str = JSON.stringify(data)
 	queue.append(message_str)
+	
+func queue_vrid_call(vrid, action, args):
+	var message_str = JSON.stringify({
+		type = "VRID_CALL",
+		data = {
+			vrid = vrid,
+			action = action,
+			args = args
+		}
+	})
+	
+	queue.append(message_str)

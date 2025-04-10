@@ -55,6 +55,7 @@ func _on_plot_added(data):
 "
 
 [node name="ModsPanel" type="Panel"]
+custom_minimum_size = Vector2(800, 500)
 offset_right = 800.0
 offset_bottom = 500.0
 grow_horizontal = 2

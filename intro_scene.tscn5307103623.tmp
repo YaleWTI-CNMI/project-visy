@@ -161,17 +161,13 @@ ambient_light_color = Color(0.491583, 0.491583, 0.491583, 1)
 tonemap_mode = 3
 adjustment_saturation = 0.01
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_o8unc"]
-radius = 0.018
-height = 0.212
+[sub_resource type="BoxShape3D" id="BoxShape3D_b1u3c"]
+size = Vector3(0.655, 0.015, 0.015)
 
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_o8unc"]
-radius = 0.018
-height = 0.212
-radial_segments = 12
+[sub_resource type="BoxMesh" id="BoxMesh_o8unc"]
+size = Vector3(0.655, 0.015, 0.015)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_b1u3c"]
-blend_mode = 1
 shading_mode = 0
 
 [sub_resource type="GDScript" id="GDScript_2glrg"]
@@ -231,19 +227,17 @@ ui_scene = ExtResource("3_o8unc")
 window_scale = 0.3
 size_2d = Vector2(800, 500)
 
-[node name="InteractionMover" type="Area3D" parent="XRWindow" node_paths=PackedStringArray("remote_path", "bounds_path")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00390625, -0.166095, 0.0342275)
+[node name="InteractionMover" type="Area3D" parent="XRWindow" node_paths=PackedStringArray("remote_path")]
 script = ExtResource("4_o8unc")
 remote_path = NodePath("..")
-bounds_path = NodePath("../MeshInstance")
 metadata/_custom_type_script = "uid://bg66wus0c31cl"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="XRWindow/InteractionMover"]
-transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
-shape = SubResource("CapsuleShape3D_o8unc")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00390622, -0.166095, 0.0342275)
+shape = SubResource("BoxShape3D_b1u3c")
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="XRWindow/InteractionMover/CollisionShape3D"]
-mesh = SubResource("CapsuleMesh_o8unc")
+mesh = SubResource("BoxMesh_o8unc")
 surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
 [node name="PlotSpawner" type="Node3D" parent="."]

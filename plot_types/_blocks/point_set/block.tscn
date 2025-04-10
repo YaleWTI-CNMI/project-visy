@@ -1,0 +1,114 @@
+[gd_scene load_steps=6 format=3 uid="uid://dt78cv24kohhs"]
+
+[sub_resource type="GDScript" id="GDScript_3mtqu"]
+resource_name = "PointSet"
+script/source = "extends Node3D
+
+@onready var _mminst: MultiMeshInstance3D = $MultiMeshInstance
+@onready var _mm: MultiMesh = _mminst.multimesh
+@onready var interaction = %Interaction
+
+var vrid: int
+
+class PointInfo:
+	var id: int
+	var pos: Vector3
+	var col: Color
+	var size: int
+	var col_shape: int
+
+
+var collision_shape_to_index: Dictionary[CollisionShape3D, int]
+
+
+func _ready():
+	interaction.evented.connect(_event)
+
+func collision_shape_new(radius: float = 0.05):
+	var collision_shape = CollisionShape3D.new()
+	
+	var sphere = SphereShape3D.new()
+	sphere.radius = radius
+	
+	collision_shape.shape = sphere
+	
+	return collision_shape
+
+func update_data(data: Dictionary):
+	vrid = data.vrid
+	
+	var count = len(data.x)
+	_mm.instance_count = count
+	
+	for collision_shape in collision_shape_to_index.keys():
+		collision_shape.queue_free()
+	
+	collision_shape_to_index.clear()
+			
+	for i in range(count):
+		var x = remap(data.x[i], data.xlim[0], data.xlim[1], -1, 1)
+		var y = remap(data.y[i], data.ylim[0], data.ylim[1], -1, 1)
+		var z = remap(data.z[i], data.zlim[0], data.zlim[1], -1, 1)
+		var pos = Vector3(data.x[i], data.y[i], data.z[i])
+		
+		var color = Color(data.color.r, data.color.g, data.color.b)
+		
+		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pos))
+		_mm.set_instance_color(i, color)
+		
+		var collision_shape = collision_shape_new()
+		interaction.add_child(collision_shape)
+		collision_shape.position = pos
+		collision_shape_to_index[collision_shape] = i
+
+func _event(event: InteractionController.Event):
+	match event.type:
+		InteractionController.EventType.HOVER_START:
+			var index = collision_shape_to_index[event.collision_info.collision_shape]
+			_mm.set_instance_color(index, Color.YELLOW_GREEN)
+			pass
+		InteractionController.EventType.HOVER_END:
+			var index = collision_shape_to_index[event.collision_info.collision_shape]
+			_mm.set_instance_color(index, Color.WHITE)
+			pass
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3mtqu"]
+shading_mode = 0
+vertex_color_use_as_albedo = true
+
+[sub_resource type="SphereMesh" id="SphereMesh_ywgo7"]
+resource_local_to_scene = true
+material = SubResource("StandardMaterial3D_3mtqu")
+radius = 0.05
+height = 0.1
+radial_segments = 8
+rings = 8
+
+[sub_resource type="MultiMesh" id="MultiMesh_3mtqu"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+mesh = SubResource("SphereMesh_ywgo7")
+
+[sub_resource type="GDScript" id="GDScript_ywgo7"]
+resource_name = "Interaction"
+script/source = "extends InteractionReceiver
+
+signal evented(event: InteractionController.Event)
+
+func interaction_event(event: InteractionController.Event):
+	evented.emit(event)
+	pass
+"
+
+[node name="PointSet" type="Node3D"]
+script = SubResource("GDScript_3mtqu")
+
+[node name="MultiMeshInstance" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("MultiMesh_3mtqu")
+
+[node name="Interaction" type="Area3D" parent="."]
+unique_name_in_owner = true
+script = SubResource("GDScript_ywgo7")
+metadata/_custom_type_script = "uid://dxn6p4w7d4ogi"

@@ -1,64 +1,49 @@
-[gd_scene load_steps=9 format=3 uid="uid://cmdmiakst0imi"]
+[gd_scene load_steps=4 format=3 uid="uid://cmdmiakst0imi"]
 
 [ext_resource type="Theme" uid="uid://dqjl0oqkkyb1o" path="res://ui/themes/default_theme.tres" id="1_7bmgw"]
-[ext_resource type="Texture2D" uid="uid://dv65wdbpnunnr" path="res://icon.svg" id="1_b3hg4"]
 
 [sub_resource type="LabelSettings" id="LabelSettings_ajv2k"]
-font_size = 40
+font_size = 70
 
-[sub_resource type="LabelSettings" id="LabelSettings_kpam4"]
-font_size = 40
+[sub_resource type="LabelSettings" id="LabelSettings_hc8kv"]
+font_size = 26
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hnra0"]
-bg_color = Color(0, 0.722117, 0.290701, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_xncuv"]
-bg_color = Color(0.640632, 0.601781, 0.448469, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_oe7vm"]
-bg_color = Color(0, 0.722117, 0.290701, 1)
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_p8myr"]
-
-[node name="TestUI" type="PanelContainer"]
+[node name="TestUI" type="Panel"]
 clip_contents = true
-anchors_preset = 15
-anchor_right = 1.0
+custom_minimum_size = Vector2(477, 648)
+anchors_preset = -1
+anchor_right = 0.414063
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource("1_7bmgw")
-
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
-layout_mode = 2
-
-[node name="Label" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "Welcome"
-label_settings = SubResource("LabelSettings_ajv2k")
-uppercase = true
-
-[node name="Label2" type="Label" parent="VBoxContainer"]
-layout_mode = 2
-text = "This is a test of the UI windows in VISY!"
-label_settings = SubResource("LabelSettings_kpam4")
-
-[node name="Button" type="Button" parent="VBoxContainer"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 71
-theme_override_styles/hover_pressed = SubResource("StyleBoxFlat_hnra0")
-theme_override_styles/hover = SubResource("StyleBoxFlat_xncuv")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_oe7vm")
-theme_override_styles/normal = SubResource("StyleBoxFlat_p8myr")
-text = "Test buttony"
-
-[node name="Control" type="AspectRatioContainer" parent="VBoxContainer"]
-layout_mode = 2
-size_flags_vertical = 3
-
-[node name="TextureRect" type="TextureRect" parent="VBoxContainer/Control"]
-layout_mode = 2
-texture = ExtResource("1_b3hg4")
 metadata/_edit_use_anchors_ = true
+
+[node name="MarginContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="MarginContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+
+[node name="Label" type="Label" parent="MarginContainer/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 111
+text = "Test UI"
+label_settings = SubResource("LabelSettings_ajv2k")
+horizontal_alignment = 1
+
+[node name="Label2" type="Label" parent="MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(100, 100)
+layout_mode = 2
+text = "This is the default interface that shows up whenever you haven't set a ui_scene on your XRWindow."
+label_settings = SubResource("LabelSettings_hc8kv")
+horizontal_alignment = 1
+autowrap_mode = 2

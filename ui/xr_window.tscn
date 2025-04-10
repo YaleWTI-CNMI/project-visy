@@ -4,11 +4,11 @@
 [ext_resource type="Texture2D" uid="uid://deibluoifynlo" path="res://ui/Cursor.png" id="3_rgdj5"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_rgdj5"]
-size = Vector2(0.56, 0.35)
+size = Vector2(0.48, 0.3)
 orientation = 2
 
 [sub_resource type="ViewportTexture" id="ViewportTexture_k4wdk"]
-viewport_path = NodePath("MeshInstance3D/SubViewport")
+viewport_path = NodePath("MeshInstance/SubViewport")
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rgdj5"]
 resource_local_to_scene = true
@@ -23,16 +23,39 @@ refraction_scale = 1.0
 [sub_resource type="GDScript" id="GDScript_k4wdk"]
 script/source = "extends InteractionReceiver
 
+var lock_button_name = \"trigger_click\"
+
 var last_pointer_pos: Vector2
 var pointer_pos: Vector2 = Vector2.ZERO
 
 var _icontroller: InteractionController = null
 
-func acquire(icontroller: InteractionController):
-	_icontroller = icontroller
-	_icontroller.controller.button_pressed.connect(_on_button_pressed)
-	_icontroller.controller.button_released.connect(_on_button_released)
-	pass
+
+func interaction_event(event: InteractionController.Event):
+	if _icontroller and event.icontroller != _icontroller:
+		return
+	
+	match(event.type):
+		InteractionController.EventType.HOVER_START:
+			_icontroller = event.icontroller
+			pass
+		
+		InteractionController.EventType.HOVER_END:
+			_icontroller = null
+			pass
+		
+		InteractionController.EventType.BUTTON_PRESS:
+			_on_button_pressed(event.button_name)
+			pass
+		
+		InteractionController.EventType.BUTTON_RELEASE:
+			_on_button_released(event.button_name)
+			pass
+		
+		InteractionController.EventType.HOVER:
+			hit(_icontroller, event.collision_info.hit_location)
+			pass
+
 
 func hit(icontroller: InteractionController, interaction_point: Vector3):
 	var pos_2d = project_point_to_plane_uv(interaction_point, owner.transform)
@@ -99,35 +122,35 @@ func project_point_to_plane_uv(point: Vector3, plane_transform: Transform3D) -> 
 "
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_k4wdk"]
-size = Vector3(0.56, 0.35, 0.01)
+size = Vector3(0.48, 0.3, 0.01)
 
 [node name="XRWindow" type="Node3D"]
 script = ExtResource("1_ftaok")
-window_scale = 0.3
-size_2d = Vector2(800, 800)
+size_2d = Vector2(477, 648)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance" type="MeshInstance3D" parent="."]
+unique_name_in_owner = true
 mesh = SubResource("PlaneMesh_rgdj5")
 skeleton = NodePath("../../..")
 surface_material_override/0 = SubResource("StandardMaterial3D_rgdj5")
 
-[node name="SubViewport" type="SubViewport" parent="MeshInstance3D"]
+[node name="SubViewport" type="SubViewport" parent="MeshInstance"]
 unique_name_in_owner = true
 transparent_bg = true
 handle_input_locally = false
 screen_space_aa = 1
 gui_embed_subwindows = true
-size = Vector2i(800, 800)
-size_2d_override = Vector2i(800, 800)
+size = Vector2i(477, 648)
+size_2d_override = Vector2i(477, 648)
 size_2d_override_stretch = true
 
-[node name="CanvasLayer" type="CanvasLayer" parent="MeshInstance3D/SubViewport"]
+[node name="CanvasLayer" type="CanvasLayer" parent="MeshInstance/SubViewport"]
 unique_name_in_owner = true
 
-[node name="CursorLayer" type="CanvasLayer" parent="MeshInstance3D/SubViewport"]
+[node name="CursorLayer" type="CanvasLayer" parent="MeshInstance/SubViewport"]
 layer = 128
 
-[node name="Cursor" type="TextureRect" parent="MeshInstance3D/SubViewport/CursorLayer"]
+[node name="Cursor" type="TextureRect" parent="MeshInstance/SubViewport/CursorLayer"]
 unique_name_in_owner = true
 anchors_preset = 8
 anchor_left = 0.5
@@ -149,4 +172,5 @@ script = SubResource("GDScript_k4wdk")
 metadata/_custom_type_script = "uid://dxn6p4w7d4ogi"
 
 [node name="InteractionCollisionShape" type="CollisionShape3D" parent="InteractionReceiver"]
+unique_name_in_owner = true
 shape = SubResource("BoxShape3D_k4wdk")
