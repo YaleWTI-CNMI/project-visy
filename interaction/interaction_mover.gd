@@ -64,6 +64,18 @@ func interaction_event(event: InteractionController.Event):
 		
 	
 func _process(delta: float) -> void:
+	if not remote_path:
+		queue_free()
+		return
+	
+	if remote_path and _icontroller and _icontroller.controller.is_button_pressed("by_button"):
+		_icontroller.return_pointer()
+		remote_path.queue_free()
+		return
+	
+	if remote_path.is_queued_for_deletion():
+		return
+	
 	if _icontroller:
 		manual_dist_offset -= _icontroller.controller.get_vector2("primary").y * delta * 1.5
   		
@@ -104,6 +116,9 @@ func get_node_aabb(node : Node, exclude_top_level_scale: bool = true, exclude_pa
 		
 	# Do not include children that is queued for deletion
 	if node.is_queued_for_deletion():
+		return bounds
+		
+	if node is CollisionObject3D:
 		return bounds
 
 	# Get the aabb of the visual instance

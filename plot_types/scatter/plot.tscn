@@ -119,7 +119,7 @@ orientation = 2
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_reog7"]
 
-[node name="ScatterPlot" type="Node3D" groups=["plots"]]
+[node name="ScatterPlot" type="Node3D"]
 script = SubResource("GDScript_lny24")
 
 [node name="PlotOrigin" type="Marker3D" parent="."]

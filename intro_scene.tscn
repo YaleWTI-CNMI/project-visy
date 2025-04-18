@@ -178,6 +178,8 @@ shading_mode = 0
 resource_name = "PlotSpawner"
 script/source = "extends Node3D
 
+@export var plot_spawn_loc: Node3D
+
 func _ready():
 	WSClient.plot_added.connect(_on_plot_added)
 	WSClient.disconnected.connect(_on_client_disconnected)
@@ -191,7 +193,7 @@ func _on_plot_added(data):
 	var new_plot: Node3D = plot_scene.instantiate()
 	
 	get_tree().root.add_child(new_plot)
-	new_plot.global_position = self.global_position
+	new_plot.global_position = plot_spawn_loc.global_position
 	
 	if not new_plot.is_node_ready():
 		await new_plot.ready
@@ -217,6 +219,9 @@ script = SubResource("GDScript_k2yeb")
 environment = NodePath("../WorldEnvironment")
 
 [node name="Player" parent="." instance=ExtResource("1_0crdm")]
+
+[node name="PlotSpawnLoc" type="Marker3D" parent="Player/XROrigin3D/XRCamera3D" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.846318)
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_haax2")
@@ -246,6 +251,11 @@ shape = SubResource("CapsuleShape3D_o8unc")
 mesh = SubResource("CapsuleMesh_o8unc")
 surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
-[node name="PlotSpawner" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.15974, -0.500205)
+[node name="PlotSpawner" type="Node3D" parent="." node_paths=PackedStringArray("plot_spawn_loc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.69)
 script = SubResource("GDScript_2glrg")
+plot_spawn_loc = NodePath("../Player/XROrigin3D/XRCamera3D/PlotSpawnLoc")
+
+[editable path="Player"]
+[editable path="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left"]
+[editable path="Player/XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right"]

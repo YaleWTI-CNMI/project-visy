@@ -19,7 +19,7 @@ class PointInfo:
 
 
 var collision_shape_to_index: Dictionary[CollisionShape3D, int]
-
+var _last_hover_index = -1
 
 func _ready():
 	interaction.evented.connect(_event)
@@ -49,28 +49,31 @@ func update_data(data: Dictionary):
 		var x = remap(data.x[i], data.xlim[0], data.xlim[1], -1, 1)
 		var y = remap(data.y[i], data.ylim[0], data.ylim[1], -1, 1)
 		var z = remap(data.z[i], data.zlim[0], data.zlim[1], -1, 1)
-		var pos = Vector3(data.x[i], data.y[i], data.z[i])
+		var pos = Vector3(x, y, z)
 		
 		var color = Color(data.color.r, data.color.g, data.color.b)
 		
 		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pos))
 		_mm.set_instance_color(i, color)
 		
-		var collision_shape = collision_shape_new()
+		var collision_shape = collision_shape_new(0.01)
 		interaction.add_child(collision_shape)
 		collision_shape.position = pos
 		collision_shape_to_index[collision_shape] = i
 
 func _event(event: InteractionController.Event):
 	match event.type:
-		InteractionController.EventType.HOVER_START:
-			var index = collision_shape_to_index[event.collision_info.collision_shape]
-			_mm.set_instance_color(index, Color.YELLOW_GREEN)
+		InteractionController.EventType.HOVER:
+			if _last_hover_index != -1:
+				_mm.set_instance_color(_last_hover_index, Color.WHITE)
+
+			_last_hover_index = collision_shape_to_index[event.collision_info.collision_shape]
+			_mm.set_instance_color(_last_hover_index, Color.YELLOW_GREEN)
 			pass
-		InteractionController.EventType.HOVER_END:
+		InteractionController.EventType.BUTTON_PRESS:
 			var index = collision_shape_to_index[event.collision_info.collision_shape]
-			_mm.set_instance_color(index, Color.WHITE)
-			pass
+			WSClient.queue_vrid_call(vrid, {action = \"point_pressed\", index = index})
+			
 "
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3mtqu"]
@@ -80,8 +83,8 @@ vertex_color_use_as_albedo = true
 [sub_resource type="SphereMesh" id="SphereMesh_ywgo7"]
 resource_local_to_scene = true
 material = SubResource("StandardMaterial3D_3mtqu")
-radius = 0.05
-height = 0.1
+radius = 0.01
+height = 0.02
 radial_segments = 8
 rings = 8
 
@@ -110,5 +113,7 @@ multimesh = SubResource("MultiMesh_3mtqu")
 
 [node name="Interaction" type="Area3D" parent="."]
 unique_name_in_owner = true
+monitoring = false
+monitorable = false
 script = SubResource("GDScript_ywgo7")
 metadata/_custom_type_script = "uid://dxn6p4w7d4ogi"

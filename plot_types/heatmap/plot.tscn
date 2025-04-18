@@ -171,7 +171,7 @@ shader_parameter/vertex_glow = 3.0
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_rkcl2"]
 
-[node name="HeatmapPlot" type="Node3D" groups=["plots"]]
+[node name="HeatmapPlot" type="Node3D"]
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 0.999999, -0.5, 0, -0.5)

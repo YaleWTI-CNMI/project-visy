@@ -1,0 +1,42 @@
+[gd_scene load_steps=3 format=3 uid="uid://diuinx5qakpka"]
+
+[sub_resource type="GDScript" id="GDScript_lmske"]
+script/source = "extends Node3D
+
+@onready var mesh_inst = $MeshInstance3D
+
+func update_data(data):
+	var obj_data = data.result.data
+	var model_mesh: Mesh = ObjParse.load_obj_from_buffer(obj_data, {})
+	mesh_inst.mesh = model_mesh
+	fit_mesh_instance_to_unit_cube(mesh_inst)
+	
+func fit_mesh_instance_to_unit_cube(mesh_instance: MeshInstance3D) -> void:
+	var mesh := mesh_instance.mesh
+	if mesh == null:
+		push_error(\"MeshInstance3D has no mesh assigned.\")
+		return
+
+	var aabb: AABB = mesh.get_aabb()
+	var center: Vector3 = aabb.position + aabb.size / 2.0
+	var max_dim: float = max(aabb.size.x, aabb.size.y, aabb.size.z)
+	if max_dim == 0.0:
+		push_error(\"Mesh has zero size in all dimensions.\")
+		return
+
+	var scale_factor: float = 2.0 / max_dim  # To fit in [-1, 1]
+	
+	var transform := Transform3D.IDENTITY
+	transform.origin = -center * scale_factor
+ 	transform.basis *= Vector3.ONE * scale_factor
+
+	mesh_instance.transform = transform
+"
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lmske"]
+
+[node name="Model3DPlot" type="Node3D"]
+script = SubResource("GDScript_lmske")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+material_override = SubResource("StandardMaterial3D_lmske")

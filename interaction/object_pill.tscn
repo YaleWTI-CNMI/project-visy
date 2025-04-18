@@ -1,0 +1,30 @@
+[gd_scene load_steps=5 format=3 uid="uid://dweo5xwvxuk6k"]
+
+[ext_resource type="Script" uid="uid://bg66wus0c31cl" path="res://interaction/interaction_mover.gd" id="1_5hmva"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_1p3ei"]
+radius = 0.018
+height = 0.212
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_5eogs"]
+resource_local_to_scene = true
+radius = 0.018
+height = 0.212
+radial_segments = 12
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jjt2v"]
+blend_mode = 1
+shading_mode = 0
+
+[node name="InteractionMover" type="Area3D"]
+top_level = true
+script = ExtResource("1_5hmva")
+metadata/_custom_type_script = "uid://bg66wus0c31cl"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_1p3ei")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CollisionShape3D"]
+mesh = SubResource("CapsuleMesh_5eogs")
+surface_material_override/0 = SubResource("StandardMaterial3D_jjt2v")
