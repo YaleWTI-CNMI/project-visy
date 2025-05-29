@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://dskyy3mp8r402"]
+[gd_scene load_steps=14 format=3 uid="uid://dskyy3mp8r402"]
 
 [ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
 [ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
 [ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="3_o8unc"]
 [ext_resource type="Script" uid="uid://bg66wus0c31cl" path="res://interaction/interaction_mover.gd" id="4_o8unc"]
+[ext_resource type="PackedScene" uid="uid://cs5w0fs6rrnx2" path="res://plot_types/volume/plot.tscn" id="5_b1u3c"]
 
 [sub_resource type="GDScript" id="GDScript_k2yeb"]
 script/source = "extends Node3D
@@ -223,6 +224,36 @@ environment = NodePath("../WorldEnvironment")
 [node name="PlotSpawnLoc" type="Marker3D" parent="Player/XROrigin3D/XRCamera3D" index="0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.846318)
 
+[node name="Skeleton3D" parent="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left" index="0"]
+bones/2/position = Vector3(0.010468, 0.00248203, -0.011252)
+bones/2/rotation = Quaternion(-0.0788212, 0.0103844, 0.0206173, 0.996621)
+bones/2/scale = Vector3(1, 1, 1)
+bones/3/rotation = Quaternion(0.040437, 0.109256, -0.00863228, 0.993153)
+bones/3/scale = Vector3(1, 1, 1)
+bones/4/rotation = Quaternion(0.104869, 0.0799903, 0.123959, 0.983483)
+bones/4/scale = Vector3(1, 1, 1)
+bones/5/position = Vector3(-0.0156074, 0.00596564, 0.00320586)
+bones/5/rotation = Quaternion(-0.0736892, 0.00689783, 0.0107466, 0.997199)
+bones/5/scale = Vector3(1, 1, 1)
+bones/6/position = Vector3(-0.00536613, 0.00425634, -0.00963178)
+bones/6/rotation = Quaternion(-0.0797154, 0.00683273, 0.0107881, 0.996736)
+bones/6/scale = Vector3(1, 1, 1)
+bones/7/position = Vector3(0.0062937, -0.00186804, 0.00868461)
+bones/7/rotation = Quaternion(-0.0733958, 0.119254, 0.00994497, 0.990097)
+bones/7/scale = Vector3(1, 1, 1)
+
+[node name="Skeleton3D" parent="Player/XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right" index="0"]
+bones/2/position = Vector3(-0.0114072, 0.0019514, -0.0108525)
+bones/2/rotation = Quaternion(-0.0788212, 0.0103844, 0.0206173, 0.996621)
+bones/2/scale = Vector3(1, 1, 1)
+bones/4/rotation = Quaternion(0.105386, -0.0645229, -0.105785, 0.986681)
+bones/5/position = Vector3(0.0154212, 0.00651547, 0.00279352)
+bones/5/rotation = Quaternion(-0.0736895, 0.00689782, 0.0107467, 0.997199)
+bones/5/scale = Vector3(1, 1, 1)
+bones/6/position = Vector3(0.00487243, 0.00438157, -0.00972508)
+bones/6/rotation = Quaternion(-0.0797155, 0.00683274, 0.0107882, 0.996736)
+bones/6/scale = Vector3(1, 1, 1)
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_haax2")
 
@@ -255,6 +286,24 @@ surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.69)
 script = SubResource("GDScript_2glrg")
 plot_spawn_loc = NodePath("../Player/XROrigin3D/XRCamera3D/PlotSpawnLoc")
+
+[node name="VolumePlot" parent="." instance=ExtResource("5_b1u3c")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0334163, 0, -0.11681)
+
+[node name="InteractionMover" type="Area3D" parent="VolumePlot" node_paths=PackedStringArray("remote_path", "bounds_path")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00390625, -0.166095, 0.0342275)
+script = ExtResource("4_o8unc")
+remote_path = NodePath("..")
+bounds_path = NodePath("../MeshInstance3D")
+metadata/_custom_type_script = "uid://bg66wus0c31cl"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VolumePlot/InteractionMover"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_o8unc")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="VolumePlot/InteractionMover/CollisionShape3D"]
+mesh = SubResource("CapsuleMesh_o8unc")
+surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
 [editable path="Player"]
 [editable path="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left"]
