@@ -51,7 +51,11 @@ func update_data(data: Dictionary):
 		var z = remap(data.z[i], data.zlim[0], data.zlim[1], -1, 1)
 		var pos = Vector3(x, y, z)
 		
-		var color = Color(data.color.r, data.color.g, data.color.b)
+		var color = Color(1, 1, 1)
+		if data.color is Array:
+			color = Color(data.color[i].r, data.color[i].g, data.color[i].b)
+		elif data.color is Dictionary:
+			color = Color(data.color.r, data.color.g, data.color.b)
 		
 		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pos))
 		_mm.set_instance_color(i, color)

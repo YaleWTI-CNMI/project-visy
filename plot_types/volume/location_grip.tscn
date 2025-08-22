@@ -1,0 +1,62 @@
+[gd_scene load_steps=5 format=3 uid="uid://dk1wvvqyejctf"]
+
+[ext_resource type="Script" uid="uid://bg66wus0c31cl" path="res://interaction/interaction_mover.gd" id="1_ac24d"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ac24d"]
+shading_mode = 0
+albedo_color = Color(0.687215, 0.687215, 0.687215, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wco00"]
+material = SubResource("StandardMaterial3D_ac24d")
+size = Vector3(0.01, 0.01, 0.061)
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ac24d"]
+radius = 0.0883666
+
+[node name="LocationGrip" type="Node3D"]
+
+[node name="Visual" type="Node3D" parent="."]
+
+[node name="Face1" type="Node3D" parent="Visual"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Visual/Face1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.045)
+mesh = SubResource("BoxMesh_wco00")
+skeleton = NodePath("../../../root/@EditorNode@21310/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/LocationGrip/InteractionReceiver")
+
+[node name="MeshInstance3D3" type="MeshInstance3D" parent="Visual/Face1"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, -0.045, 0)
+mesh = SubResource("BoxMesh_wco00")
+skeleton = NodePath("../../../root/@EditorNode@21310/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/LocationGrip/InteractionReceiver")
+
+[node name="MeshInstance3D4" type="MeshInstance3D" parent="Visual/Face1"]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.044718, 0)
+mesh = SubResource("BoxMesh_wco00")
+skeleton = NodePath("../../../root/@EditorNode@21310/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/LocationGrip/InteractionReceiver")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Visual/Face1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.045)
+mesh = SubResource("BoxMesh_wco00")
+skeleton = NodePath("../../../root/@EditorNode@21310/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/LocationGrip/InteractionReceiver")
+
+[node name="Face2" type="Node3D" parent="Visual"]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 0, 0, 0)
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Visual/Face2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.045)
+mesh = SubResource("BoxMesh_wco00")
+skeleton = NodePath("../../../root/@EditorNode@21310/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/LocationGrip/InteractionReceiver")
+
+[node name="MeshInstance3D2" type="MeshInstance3D" parent="Visual/Face2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.045)
+mesh = SubResource("BoxMesh_wco00")
+skeleton = NodePath("../../../root/@EditorNode@21310/@Panel@14/@VBoxContainer@15/DockHSplitLeftL/DockHSplitLeftR/DockHSplitMain/@VBoxContainer@26/DockVSplitCenter/@VSplitContainer@54/@VBoxContainer@55/@EditorMainScreen@102/MainScreen/@CanvasItemEditor@11482/@VSplitContainer@11134/@HSplitContainer@11136/@HSplitContainer@11138/@Control@11139/@SubViewportContainer@11140/@SubViewport@11141/LocationGrip/InteractionReceiver")
+
+[node name="InteractionMover" type="Area3D" parent="." node_paths=PackedStringArray("remote_path", "bounds_path")]
+script = ExtResource("1_ac24d")
+remote_path = NodePath("..")
+bounds_path = NodePath("../Visual")
+metadata/_custom_type_script = "uid://bg66wus0c31cl"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionMover"]
+shape = SubResource("SphereShape3D_ac24d")

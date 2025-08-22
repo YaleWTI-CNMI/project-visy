@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_front;
+render_mode unshaded, cull_disabled;
 
 uniform sampler3D volume_data;
 uniform float steps = 64.0;
@@ -7,8 +7,8 @@ uniform float contrast = 1.0;
 
 uniform sampler2D filter_tex;
 
-uniform float low_clamp = 0.0;
-uniform float high_clamp = 1.0;
+uniform vec3 low_clamp = vec3(0.0);
+uniform vec3 high_clamp = vec3(1.0);
 
 varying vec3 world_pos;
 
@@ -17,12 +17,21 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 eye_world = CAMERA_POSITION_WORLD + EYE_OFFSET;
-    vec3 ray_dir_world = normalize(world_pos - eye_world);
+	//vec3 eye_world = CAMERA_POSITION_WORLD + EYE_OFFSET;
+    //vec3 ray_dir_world = normalize(world_pos - eye_world);
 
     mat4 inv_model = inverse(MODEL_MATRIX);
-    vec3 ray_origin = (inv_model * vec4(eye_world, 1.0)).xyz;
-    vec3 ray_dir = normalize((inv_model * vec4(ray_dir_world, 0.0)).xyz);
+    //vec3 ray_origin = (inv_model * vec4(eye_world, 1.0)).xyz;
+    //vec3 ray_dir = normalize((inv_model * vec4(ray_dir_world, 0.0)).xyz);
+
+	// Transform both eye and frag positions into object space
+	vec3 eye_world = CAMERA_POSITION_WORLD;
+	vec3 eye_obj = (inverse(MODEL_MATRIX) * vec4(eye_world, 1.0)).xyz;
+
+	vec3 frag_obj = (inverse(MODEL_MATRIX) * vec4(world_pos, 1.0)).xyz;
+	vec3 ray_dir = normalize(frag_obj - eye_obj);
+	vec3 ray_origin = eye_obj;
+
 
     vec3 box_min = vec3(-0.5);
     vec3 box_max = vec3(0.5);
@@ -56,12 +65,11 @@ void fragment() {
 
     for (; i <= int(steps); i++) {
 	    vec3 p = ray_origin + ray_dir * t;
-	    vec3 uvw = (p - box_min) / (box_max - box_min);
+		vec3 uvw = clamp((p - box_min) / (box_max - box_min), 0.0, 1.0);
 	    vec4 sample = texture(volume_data, uvw);
 
-
-		if (uvw.b != clamp(uvw.b, low_clamp, high_clamp)) {
-	        t += dt;
+		if(!(all(greaterThanEqual(uvw, low_clamp)) && all(lessThanEqual(uvw, high_clamp)))) {
+			t += dt;
 			dead_i++;
 			continue;
 		}
