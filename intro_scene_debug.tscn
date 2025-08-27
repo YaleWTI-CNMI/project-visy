@@ -1,6 +1,7 @@
-[gd_scene load_steps=8 format=3 uid="uid://cymb6gans5wcr"]
+[gd_scene load_steps=9 format=3 uid="uid://cymb6gans5wcr"]
 
 [ext_resource type="Script" uid="uid://1wo1jy5wqe3i" path="res://ws_client/ws_client.gd" id="1_0w0bl"]
+[ext_resource type="Theme" uid="uid://cew0eshe4wtr5" path="res://ui/themes/debug_theme.tres" id="1_yk1fk"]
 [ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="2_kit15"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ad1k0"]
@@ -63,6 +64,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource("1_yk1fk")
 
 [node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Panel"]
 layout_mode = 1
@@ -88,7 +90,7 @@ stretch = true
 [node name="SubViewport" type="SubViewport" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer"]
 handle_input_locally = false
 msaa_3d = 1
-size = Vector2i(324, 632)
+size = Vector2i(297, 632)
 render_target_update_mode = 4
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]

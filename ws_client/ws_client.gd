@@ -14,10 +14,22 @@ signal plot_added(data)
 signal plot_updated(data)
 signal plot_removed(data)
 
+
+var active: bool = false
+var thread: Thread
+
+
 func _ready() -> void:
 	socket.inbound_buffer_size = 200000000
-	var thread = Thread.new()
+	thread = Thread.new()
+	active = true
 	thread.start(_main, Thread.PRIORITY_HIGH)
+
+
+func _exit_tree() -> void:
+	active = false
+	if thread.is_alive():
+		thread.wait_to_finish()
 
 func try_connect(url) -> bool:
 	var err = socket.connect_to_url(url)
@@ -31,7 +43,7 @@ func try_connect(url) -> bool:
 
 
 func _main():
-	while true:
+	while active:
 		if not try_connect(server_url):
 			await get_tree().create_timer(3.0).timeout
 			continue
@@ -39,7 +51,7 @@ func _main():
 		socket.poll()
 		var state = socket.get_ready_state()
 		
-		while state != WebSocketPeer.STATE_CLOSED:
+		while state != WebSocketPeer.STATE_CLOSED && active:
 			if state == WebSocketPeer.STATE_OPEN:
 				if is_connected == false:
 					connected.emit.call_deferred()
@@ -67,6 +79,8 @@ func _main():
 		disconnected.emit.call_deferred(code)
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
 		print("Attempting reconnect")
+		
+		await get_tree().create_timer(1).timeout
 
 
 func process_new_message(data: String):
