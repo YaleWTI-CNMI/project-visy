@@ -23,9 +23,14 @@ WSClient="*res://ws_client/ws_client.gd"
 
 project/assembly_name="project-visy"
 
+[gui]
+
+theme/default_theme_scale=0.85
+
 [layer_names]
 
 3d_physics/layer_9="Interaction"
+3d_physics/layer_10="Interaction/Properties"
 
 [physics]
 

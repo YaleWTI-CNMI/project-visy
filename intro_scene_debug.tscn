@@ -1,0 +1,142 @@
+[gd_scene load_steps=8 format=3 uid="uid://cymb6gans5wcr"]
+
+[ext_resource type="Script" uid="uid://1wo1jy5wqe3i" path="res://ws_client/ws_client.gd" id="1_0w0bl"]
+[ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="2_kit15"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ad1k0"]
+sky_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
+
+[sub_resource type="Sky" id="Sky_0w0bl"]
+sky_material = SubResource("ProceduralSkyMaterial_ad1k0")
+
+[sub_resource type="Environment" id="Environment_kit15"]
+sky = SubResource("Sky_0w0bl")
+tonemap_mode = 4
+
+[sub_resource type="BoxMesh" id="BoxMesh_ad1k0"]
+
+[sub_resource type="GDScript" id="GDScript_kit15"]
+resource_name = "PlotSpawner"
+script/source = "extends Node3D
+
+@export var plot_spawn_loc: Node3D
+
+func _ready():
+	WSClient.plot_added.connect(_on_plot_added)
+	WSClient.disconnected.connect(_on_client_disconnected)
+	WSClient.plot_updated.connect(_on_plot_updated)
+	
+
+
+
+func _on_plot_added(data):
+	var plot_scene: PackedScene = load(\"res://plot_types/%s/plot.tscn\" % data.result.type)
+	var new_plot: Node3D = plot_scene.instantiate()
+	
+	get_tree().root.add_child(new_plot)
+	new_plot.global_position = plot_spawn_loc.global_position
+	
+	if not new_plot.is_node_ready():
+		await new_plot.ready
+	
+	new_plot.set_meta(\"id\", data.id)
+	new_plot.update_data(data)
+	new_plot.add_to_group(\"plots\")
+	
+func _on_plot_updated(data):
+	for plot in get_tree().get_nodes_in_group(\"plots\"):
+		if plot.get_meta(\"id\") == data.id:
+			plot.update_data(data)
+
+func _on_client_disconnected(code):
+	get_tree().call_group(\"plots\", \"queue_free\")
+"
+
+[node name="IntroSceneDebug" type="Node2D"]
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Panel" type="Panel" parent="CanvasLayer"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="MarginContainer" type="MarginContainer" parent="CanvasLayer/Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="HSplitContainer" type="HSplitContainer" parent="CanvasLayer/Panel/MarginContainer"]
+layout_mode = 2
+split_offset = 440
+drag_area_highlight_in_editor = true
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer"]
+layout_mode = 2
+stretch = true
+
+[node name="SubViewport" type="SubViewport" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer"]
+handle_input_locally = false
+msaa_3d = 1
+size = Vector2i(324, 632)
+render_target_update_mode = 4
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
+environment = SubResource("Environment_kit15")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
+visible = false
+mesh = SubResource("BoxMesh_ad1k0")
+skeleton = NodePath("../../../PanelContainer/TabContainer/DebugBackend")
+
+[node name="Camera3D" type="Camera3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
+transform = Transform3D(0.425842, 0, -0.904797, 0, 1, 0, 0.904797, 0, 0.425842, -2.80135, 0.275113, 1.2821)
+fov = 50.8391
+
+[node name="WSClient" type="Node3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
+script = ExtResource("1_0w0bl")
+
+[node name="PlotSpawner" type="Node3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport/WSClient" node_paths=PackedStringArray("plot_spawn_loc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.69)
+script = SubResource("GDScript_kit15")
+plot_spawn_loc = NodePath("..")
+
+[node name="PanelContainer" type="PanelContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="TabContainer" type="TabContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer"]
+layout_mode = 2
+current_tab = 0
+
+[node name="Inspector" type="PanelContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer/TabContainer"]
+layout_mode = 2
+metadata/_tab_index = 0
+
+[node name="ModsPanel" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer/TabContainer/Inspector" instance=ExtResource("2_kit15")]
+layout_mode = 2
+theme = null
+
+[node name="DebugBackend" type="PanelContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 1
+
+[node name="DebugState" type="PanelContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer/TabContainer"]
+visible = false
+layout_mode = 2
+metadata/_tab_index = 2
