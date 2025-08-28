@@ -50,6 +50,7 @@ func _main():
 		
 		socket.poll()
 		var state = socket.get_ready_state()
+		var acc_msg: String = ""
 		
 		while state != WebSocketPeer.STATE_CLOSED && active:
 			if state == WebSocketPeer.STATE_OPEN:
@@ -61,8 +62,12 @@ func _main():
 				
 				# Receive
 				while socket.get_available_packet_count():
-					var data = socket.get_packet().get_string_from_utf8()
-					process_new_message(data)
+					var msg_split = socket.get_packet().get_string_from_utf8()
+					acc_msg += msg_split
+					
+					if acc_msg.ends_with("\n"):
+						process_new_message(acc_msg)
+						acc_msg = ""
 				
 				# Send
 				while len(queue):

@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=3 uid="uid://cymb6gans5wcr"]
+[gd_scene load_steps=10 format=3 uid="uid://cymb6gans5wcr"]
 
 [ext_resource type="Script" uid="uid://1wo1jy5wqe3i" path="res://ws_client/ws_client.gd" id="1_0w0bl"]
 [ext_resource type="Theme" uid="uid://cew0eshe4wtr5" path="res://ui/themes/debug_theme.tres" id="1_yk1fk"]
@@ -12,10 +12,49 @@ ground_horizon_color = Color(0.662243, 0.671743, 0.686743, 1)
 sky_material = SubResource("ProceduralSkyMaterial_ad1k0")
 
 [sub_resource type="Environment" id="Environment_kit15"]
+background_mode = 2
 sky = SubResource("Sky_0w0bl")
 tonemap_mode = 4
 
 [sub_resource type="BoxMesh" id="BoxMesh_ad1k0"]
+
+[sub_resource type="GDScript" id="GDScript_yk1fk"]
+resource_name = "camera_mvmt_orbit"
+script/source = "extends Camera3D
+
+var last_mouse_pos: Vector2
+var orbit_vector: Vector3
+
+
+@export var orbit_speed = 50
+
+func _input(event: InputEvent) -> void:
+	if event.is_action_pressed(\"desktop_camera_zoom_in\"):
+		self.size -= 0.5 * (1 - log(self.size / 3))
+	if event.is_action_pressed(\"desktop_camera_zoom_out\"):
+		self.size +=  0.5 * (1 - log(self.size / 3))
+	
+	if event is InputEventMouseMotion:
+		if Input.is_action_pressed(\"desktop_camera_pan\"):
+			var mouse_delta = (event.position - last_mouse_pos) / 100
+			orbit_vector += self.basis * Vector3(-mouse_delta.x, mouse_delta.y, 0)
+			self.translate_object_local(Vector3(-mouse_delta.x, mouse_delta.y, 0))
+
+
+		elif Input.is_action_pressed(\"desktop_camera_orbit\"):
+			var mouse_delta = (event.position)
+			
+			var bas = Transform3D(Basis.IDENTITY, orbit_vector) \\
+				.translated(Vector3(5 * PI * cos(mouse_delta.x / orbit_speed), 0, 5 * PI * sin(mouse_delta.x / orbit_speed))) \\
+				.looking_at(orbit_vector) \\
+				.basis
+			
+			self.global_transform = Transform3D(bas, orbit_vector) \\
+				.translated_local(Vector3(5 * PI * cos(mouse_delta.y / orbit_speed), 5 * PI * sin(mouse_delta.y / orbit_speed), 0)) \\
+				.looking_at(orbit_vector)
+
+		last_mouse_pos = event.position
+"
 
 [sub_resource type="GDScript" id="GDScript_kit15"]
 resource_name = "PlotSpawner"
@@ -90,12 +129,8 @@ stretch = true
 [node name="SubViewport" type="SubViewport" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer"]
 handle_input_locally = false
 msaa_3d = 1
-size = Vector2i(297, 632)
+size = Vector2i(440, 632)
 render_target_update_mode = 4
-
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
-transform = Transform3D(-0.866025, -0.433013, 0.25, 0, 0.5, 0.866025, -0.5, 0.75, -0.433013, 0, 0, 0)
-shadow_enabled = true
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
 environment = SubResource("Environment_kit15")
@@ -106,8 +141,11 @@ mesh = SubResource("BoxMesh_ad1k0")
 skeleton = NodePath("../../../PanelContainer/TabContainer/DebugBackend")
 
 [node name="Camera3D" type="Camera3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
-transform = Transform3D(0.425842, 0, -0.904797, 0, 1, 0, 0.904797, 0, 0.425842, -2.80135, 0.275113, 1.2821)
+transform = Transform3D(0.722482, 0.387558, -0.572555, 0.014264, 0.819589, 0.572774, 0.691243, -0.421985, 0.58661, -1.89363, 1.43667, 1.88293)
+projection = 1
 fov = 50.8391
+size = 3.0
+script = SubResource("GDScript_yk1fk")
 
 [node name="WSClient" type="Node3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
 script = ExtResource("1_0w0bl")
@@ -130,7 +168,9 @@ layout_mode = 2
 metadata/_tab_index = 0
 
 [node name="ModsPanel" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer/TabContainer/Inspector" instance=ExtResource("2_kit15")]
+custom_minimum_size = Vector2(400, 500)
 layout_mode = 2
+size_flags_horizontal = 1
 theme = null
 
 [node name="DebugBackend" type="PanelContainer" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/PanelContainer/TabContainer"]
