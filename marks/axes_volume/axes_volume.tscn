@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=3 uid="uid://c37oxgk63vnvh"]
+
+[ext_resource type="Shader" uid="uid://cop0vqrygegvh" path="res://marks/axes_volume/axes_volume.gdshader" id="1_uukvq"]
+
+[sub_resource type="Gradient" id="Gradient_yt5um"]
+offsets = PackedFloat32Array(0, 0.0810277, 0.764822, 0.960474)
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_lrij4"]
+gradient = SubResource("Gradient_yt5um")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_yt5um"]
+render_priority = 0
+shader = ExtResource("1_uukvq")
+shader_parameter/steps = 64.0
+shader_parameter/contrast = 0.205
+shader_parameter/filter_tex = SubResource("GradientTexture1D_lrij4")
+shader_parameter/low_clamp = Vector3(0, 0, 0)
+shader_parameter/high_clamp = Vector3(1, 1, 1)
+shader_parameter/epsilon = 0.005
+
+[sub_resource type="BoxMesh" id="BoxMesh_sef18"]
+material = SubResource("ShaderMaterial_yt5um")
+
+[node name="AxesVolume" type="Node3D"]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_sef18")

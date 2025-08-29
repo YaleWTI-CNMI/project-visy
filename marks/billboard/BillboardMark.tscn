@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://dny143ce81pck"]
+
+[ext_resource type="Script" uid="uid://bgxfv60i8g1d3" path="res://marks/billboard/billboard_mark.gd" id="1_4u6av"]
+[ext_resource type="QuadMesh" uid="uid://byloc4tdcqojm" path="res://marks/billboard/billboard_mesh.tres" id="1_ktmnn"]
+
+[sub_resource type="MultiMesh" id="MultiMesh_4u6av"]
+transform_format = 1
+use_colors = true
+use_custom_data = true
+instance_count = 1
+mesh = ExtResource("1_ktmnn")
+buffer = PackedFloat32Array(1.505, 0.985, 0.925, -0.045, 2.015, 2.115, 0.455, 0.05, 1.205, 1.525, 0.835, 0, 0.875, 1.17, 0.75, 0.57, 0.485, 0.365, 0.145, 0)
+
+[node name="BillboardMark" type="Node3D"]
+script = ExtResource("1_4u6av")
+
+[node name="MMI" type="MultiMeshInstance3D" parent="."]
+multimesh = SubResource("MultiMesh_4u6av")

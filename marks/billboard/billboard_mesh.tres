@@ -1,0 +1,16 @@
+[gd_resource type="QuadMesh" load_steps=4 format=3 uid="uid://byloc4tdcqojm"]
+
+[ext_resource type="Shader" uid="uid://bs80x1s4hm5mv" path="res://marks/billboard/billboard_mark_shader.gdshader" id="1_24uat"]
+[ext_resource type="Texture2D" uid="uid://c2ddw4yu01kpc" path="res://marks/billboard/circle_mark.png" id="2_0e84q"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_0e84q"]
+resource_local_to_scene = true
+render_priority = 0
+shader = ExtResource("1_24uat")
+shader_parameter/global_size = 1.0
+shader_parameter/mark_texture = ExtResource("2_0e84q")
+
+[resource]
+resource_local_to_scene = true
+material = SubResource("ShaderMaterial_0e84q")
+size = Vector2(0.01, 0.01)
