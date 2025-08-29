@@ -55,6 +55,10 @@ shape = SubResource("SphereShape3D_ny3xo")
 node_a = NodePath("../RigidBody3DA")
 node_b = NodePath("../RigidBody3DB")
 
+[node name="SliderJoint3D" type="SliderJoint3D" parent="ConeTwistJoint3D"]
+node_a = NodePath("../../RigidBody3DA")
+node_b = NodePath("../../RigidBody3DB")
+
 [node name="Camera3D" type="Camera3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.556398, 0, 0.919943)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.556398, 0, 6.92155)
 script = SubResource("GDScript_ny3xo")

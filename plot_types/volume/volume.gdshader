@@ -6,6 +6,7 @@ uniform float steps = 64.0;
 uniform float contrast = 1.0;
 
 uniform sampler2D filter_tex;
+uniform sampler2D color_map;
 
 uniform vec3 low_clamp = vec3(0.0);
 uniform vec3 high_clamp = vec3(1.0);
@@ -85,6 +86,9 @@ void fragment() {
 			dead_i++;
 	        continue;
 	    }
+
+		vec4 color_sample = texture(color_map, vec2(sample.r, 0.5));
+		sample.rgb = color_sample.rgb;
 
 	    accum_color += sample.rgb * sample.a * (alpha_budget);
 	    alpha_budget *= (1.0 - sample.a);

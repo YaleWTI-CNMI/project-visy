@@ -79,7 +79,7 @@ void fragment() {
 		}
 		if(abs(is - 0.2) > epsilon) is = 0.0;
 		vec4 sample = vec4(uvw, is);
-		
+
 		if(!(all(greaterThanEqual(uvw, low_clamp)) && all(lessThanEqual(uvw, high_clamp)))) {
 			t += dt;
 			dead_i++;
