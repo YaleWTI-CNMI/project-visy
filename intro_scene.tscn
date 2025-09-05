@@ -224,9 +224,6 @@ environment = NodePath("../WorldEnvironment")
 [node name="PlotSpawnLoc" type="Marker3D" parent="Player/XROrigin3D/XRCamera3D" index="0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.846318)
 
-[node name="Skeleton3D" parent="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left" index="0"]
-bones/4/scale = Vector3(1, 1, 1)
-
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_haax2")
 
