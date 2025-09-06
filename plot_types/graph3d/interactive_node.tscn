@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://bm3ohgvigs3pw"]
+
+[ext_resource type="Script" path="res://plot_types/graph3d/interactive_node.gd" id="1"]
+
+[node name="InteractiveNode" type="Area3D"]
+script = ExtResource("1")

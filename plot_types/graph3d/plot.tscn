@@ -1,0 +1,290 @@
+[gd_scene load_steps=2 format=3 uid="uid://5d0xr1t7jkmp"]
+
+[sub_resource type="GDScript" id="GDScript_1"]
+script/source = "extends Node3D
+
+var nodes_container: Node3D
+var edges_container: Node3D
+var data: Dictionary
+var node_lookup: Dictionary = {}  #  node_id -> node reference
+var edge_lookup: Dictionary = {}  #  edge -> {source_id, target_id, mesh}
+var last_server_update_time: float = 0.0  # Throttle server updates
+
+
+func _ready():
+	print(\"[graph 3d] simple plot _ready() called\")
+	nodes_container = Node3D.new()
+	edges_container = Node3D.new()
+	add_child(edges_container)
+	add_child(nodes_container)
+	print(\"[graph 3d] containers created\")
+
+func update_data(plot_data: Dictionary):
+	print(\"[graph 3d] update_data() called with data: \", plot_data)
+	data = plot_data
+	clear_plot()
+	render_graph()
+
+func clear_plot():
+	print(\"[graph 3d] clearing plot\")
+	for child in nodes_container.get_children():
+		child.queue_free()
+	for child in edges_container.get_children():
+		child.queue_free()
+	node_lookup.clear()
+	edge_lookup.clear()
+
+func render_graph():
+	print(\"[graph 3d] render_graph() called\")
+	print('[graph 3d] full data: ', data)
+	
+	var result
+	if data.has('result'):
+		result = data.get('result', {})
+		print('[graph 3d] using result format')
+	else:
+		result = data
+		print('[graph 3d] using direct format')
+	
+	var nodes = result.get('nodes', [])
+	var edges = result.get('edges', [])
+	
+	print('[graph 3d] found ', nodes.size(), ' nodes and ', edges.size(), ' edges')
+	
+	# create nodes first
+	for i in range(nodes.size()):
+		var node = nodes[i]
+		print('[graph 3d] creating node ', i, ': ', node)
+		create_simple_node(node)
+	
+	# create edges
+	for i in range(edges.size()):
+		var edge = edges[i]
+		print('[graph 3d] creating edge ', i, ': ', edge)
+		create_simple_edge(edge)
+	
+	print('[graph 3d] graph render complete!')
+
+func create_simple_node(node_data: Dictionary):
+	print('[graph 3d] creating interactive node with data: ', node_data)
+	
+	var interactive_node_scene = preload(\"res://plot_types/graph3d/interactive_node.tscn\")
+	var interactive_node = interactive_node_scene.instantiate()
+	
+	# setup node with data
+	interactive_node.setup_node(node_data, data.get('id', 0))
+	
+	# connect node_moved signal for position updates
+	interactive_node.node_moved.connect(_on_node_moved)
+	
+	# node reference for edge tracking
+	node_lookup[str(node_data.get('id', ''))] = interactive_node
+	
+	nodes_container.add_child(interactive_node)
+	print('[graph 3d] interactive node created at: ', interactive_node.position)
+
+func create_simple_edge(edge_data: Dictionary):
+	print('[graph 3d] creating edge with data: ', edge_data)
+	
+	var source_id = edge_data.get('source_id', edge_data.get('source', ''))
+	var target_id = edge_data.get('target_id', edge_data.get('target', ''))
+	
+	var source_node = null
+	var target_node = null
+	
+	var result = data.get('result', data)
+	var nodes = result.get('nodes', [])
+	
+	for node in nodes:
+		if str(node.get('id', '')) == str(source_id):
+			source_node = node
+		if str(node.get('id', '')) == str(target_id):
+			target_node = node
+	
+	if source_node == null or target_node == null:
+		print('[graph 3d] could not find source or target node for edge')
+		print('[graph 3d] source id: ', source_id, ' target id: ', target_id)
+		return
+	
+	var source_pos = Vector3(
+		float(source_node.get('x', 0.0)) * 0.1,
+		float(source_node.get('y', 0.0)) * 0.1,
+		float(source_node.get('z', 0.0)) * 0.1
+	)
+	var target_pos = Vector3(
+		float(target_node.get('x', 0.0)) * 0.1,
+		float(target_node.get('y', 0.0)) * 0.1,
+		float(target_node.get('z', 0.0)) * 0.1
+	)
+	
+	print('[graph 3d] edge from ', source_pos, ' to ', target_pos)
+	
+	var edge_mesh = MeshInstance3D.new()
+	var cylinder = CylinderMesh.new()
+	
+	var distance = source_pos.distance_to(target_pos)
+	cylinder.height = distance
+	cylinder.top_radius = 0.005
+	cylinder.bottom_radius = 0.005
+	
+	edge_mesh.mesh = cylinder
+	
+	var midpoint = (source_pos + target_pos) / 2.0
+	edge_mesh.position = midpoint
+	
+	var direction = (target_pos - source_pos).normalized()
+	var up = Vector3.UP
+	
+	if abs(direction.dot(up)) > 0.99:
+		up = Vector3.RIGHT
+	
+	var right = up.cross(direction).normalized()
+	up = direction.cross(right).normalized()
+	
+	edge_mesh.basis = Basis(right, direction, up)
+	
+	var material = StandardMaterial3D.new()
+	if edge_data.has('color'):
+		var color = edge_data.color
+		material.albedo_color = Color(color.get('r', 0.8), color.get('g', 0.3), color.get('b', 0.3))
+	else:
+		material.albedo_color = Color.WHITE
+	edge_mesh.material_override = material
+	
+	var edge_interaction = preload(\"res://plot_types/graph3d/edge_grabber.gd\").new()
+	print('[graph 3d] created edge grabber for edge: ', source_id, ' -> ', target_id)
+	
+	var collision_shape = CollisionShape3D.new()
+	var capsule_shape = CapsuleShape3D.new()
+	
+	capsule_shape.radius = 0.05  
+	capsule_shape.height = distance
+	collision_shape.shape = capsule_shape
+	
+	edge_interaction.add_child(collision_shape)
+	edge_interaction.add_child(edge_mesh)
+	edge_interaction.position = midpoint
+	edge_interaction.basis = Basis(right, direction, up)
+	
+	edge_mesh.position = Vector3.ZERO
+	edge_mesh.basis = Basis.IDENTITY
+	
+	edge_interaction.graph_root = self
+	
+	edges_container.add_child(edge_interaction)
+	
+	var edge_key = str(source_id) + \"->\" + str(target_id)
+	edge_lookup[edge_key] = {
+		\"source_id\": str(source_id),
+		\"target_id\": str(target_id),
+		\"mesh\": edge_mesh,
+		\"interaction\": edge_interaction,
+		\"collision\": collision_shape,
+		\"source_pos\": source_pos,
+		\"target_pos\": target_pos
+	}
+	
+	print('[graph 3d] edge created with length: ', distance)
+
+func _on_node_moved(node_id: String, plot_id: int, new_position: Vector3):
+	update_connected_edges(node_id)
+	
+	# throttle server updates
+	var current_timestamp = Time.get_ticks_msec() / 1000.0
+	
+	if current_timestamp - last_server_update_time > 0.1:  # 100ms throttle
+		print('[graph 3d] node moved (server update): ', node_id, ' to position: ', new_position)
+		last_server_update_time = current_timestamp
+		
+		var server_position = {
+			\"x\": new_position.x / 0.1,
+			\"y\": new_position.y / 0.1,
+			\"z\": new_position.z / 0.1
+		}
+		
+		WSClient.queue_message({
+			\"type\": \"NODE_POSITION_UPDATE\",
+			\"data\": {
+				\"plotId\": plot_id,
+				\"nodeId\": node_id,
+				\"position\": server_position
+			}
+		})
+	else:
+		print('[graph 3d] node moved : ', node_id)
+
+func update_connected_edges(moved_node_id: String):
+	print('[graph 3d] Updating edges connected to node: ', moved_node_id)
+	
+	for edge_key in edge_lookup.keys():
+		var edge_info = edge_lookup[edge_key]
+		
+		if edge_info.source_id == moved_node_id or edge_info.target_id == moved_node_id:
+			update_single_edge(edge_info)
+
+func update_single_edge(edge_info: Dictionary):
+	var source_node = node_lookup.get(edge_info.source_id)
+	var target_node = node_lookup.get(edge_info.target_id)
+	
+	if not source_node or not target_node:
+		return
+	
+	var edge_mesh = edge_info.mesh
+	var edge_interaction = edge_info.interaction
+	if not edge_mesh or not is_instance_valid(edge_mesh) or not edge_interaction:
+		return
+	
+	var source_pos = edges_container.to_local(source_node.global_position)
+	var target_pos = edges_container.to_local(target_node.global_position)
+	
+	var distance = source_pos.distance_to(target_pos)
+	if distance < 0.001:
+		edge_interaction.visible = false
+		return
+	else:
+		edge_interaction.visible = true
+	
+	var cylinder = CylinderMesh.new()
+	cylinder.height = distance
+	cylinder.top_radius = 0.01
+	cylinder.bottom_radius = 0.01
+	edge_mesh.mesh = cylinder
+	
+	var collision_shape = edge_info.collision
+	if collision_shape and collision_shape.shape:
+		var capsule = collision_shape.shape as CapsuleShape3D
+		if capsule:
+			capsule.height = distance
+	
+	var midpoint = (source_pos + target_pos) / 2.0
+	edge_interaction.position = midpoint
+	
+	var direction = (target_pos - source_pos).normalized()
+	if direction.length() > 0.001:
+		var up = Vector3.UP
+		if abs(direction.dot(up)) > 0.99:
+			up = Vector3.RIGHT
+		
+		var right = up.cross(direction).normalized()
+		up = direction.cross(right).normalized()
+		
+		edge_interaction.basis = Basis(right, direction, up)
+		
+		edge_mesh.position = Vector3.ZERO
+		edge_mesh.basis = Basis.IDENTITY
+
+func clear_edges():
+	for child in edges_container.get_children():
+		child.queue_free()
+
+func render_edges():
+	var result = data.get('result', data)
+	var edges = result.get('edges', [])
+	
+	for edge in edges:
+		create_simple_edge(edge)
+
+"
+
+[node name="Graph3DPlot" type="Node3D"]
+script = SubResource("GDScript_1")

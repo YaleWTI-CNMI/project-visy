@@ -1,0 +1,118 @@
+[gd_scene load_steps=2 format=3 uid="uid://dm7vj7e4jghcd"]
+
+[sub_resource type="GDScript" id="GDScript_1"]
+script/source = "extends Node3D
+
+var nodes_container: Node3D
+var edges_container: Node3D
+var data: Dictionary
+
+func _ready():
+	print(\"[graph 3d] simple plot _ready() called\")
+	nodes_container = Node3D.new()
+	edges_container = Node3D.new()
+	add_child(edges_container)
+	add_child(nodes_container)
+	print(\"[graph 3d] Containers created\")
+
+func update_data(plot_data: Dictionary):
+	print(\"[graph 3d] update_data() called with data: \", plot_data)
+	data = plot_data
+	clear_plot()
+	render_graph()
+
+func clear_plot():
+	print(\"[graph 3d] clearing plot\")
+	for child in nodes_container.get_children():
+		child.queue_free()
+	for child in edges_container.get_children():
+		child.queue_free()
+
+func render_graph():
+	print(\"[graph 3d] render_graph() called\")
+	print('[graph 3d] full data: ', data)
+	
+	var result
+	if data.has('result'):
+		result = data.get('result', {})
+		print('[graph 3d] using result format')
+	else:
+		result = data
+		print('[graph 3d] using direct format')
+	
+	var nodes = result.get('nodes', [])
+	var edges = result.get('edges', [])
+	
+	print('[graph 3d] found ', nodes.size(), ' nodes and ', edges.size(), ' edges')
+	
+	for i in range(nodes.size()):
+		var node = nodes[i]
+		print('[graph 3d] creating node ', i, ': ', node)
+		create_simple_node(node)
+	
+	for i in range(edges.size()):
+		var edge = edges[i]
+		print('[graph 3d] creating edge ', i, ': ', edge)
+		create_simple_edge(edge)
+	
+	print('[graph 3d] graph render complete!')
+
+func create_simple_node(node_data: Dictionary):
+	var node_mesh = MeshInstance3D.new()
+	var sphere = SphereMesh.new()
+	
+	var size = 1.0
+	if node_data.has('size'):
+		size = float(node_data.get('size', 1.0))
+	size = max(size, 0.1)
+	
+	sphere.radius = max(size * 0.05, 0.02)
+	sphere.height = sphere.radius * 2
+	
+	print('[graph 3d] node sphere radius: ', sphere.radius)
+	node_mesh.mesh = sphere
+	
+	var x = float(node_data.get('x', 0.0)) * 0.1
+	var y = float(node_data.get('y', 0.0)) * 0.1  
+	var z = float(node_data.get('z', 0.0)) * 0.1
+	node_mesh.position = Vector3(x, y, z)
+	
+	var material = StandardMaterial3D.new()
+	if node_data.has('color'):
+		var color = node_data.color
+		material.albedo_color = Color(color.get('r', 0.5), color.get('g', 0.5), color.get('b', 1.0))
+	else:
+		material.albedo_color = Color.BLUE
+	node_mesh.material_override = material
+	
+	if node_data.has('label'):
+		var label = Label3D.new()
+		label.text = str(node_data.label)
+		label.position = Vector3(0, sphere.radius + 0.05, 0)
+		label.scale = Vector3(0.1, 0.1, 0.1)
+		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		node_mesh.add_child(label)
+	
+	nodes_container.add_child(node_mesh)
+	print('[graph 3d] node created at: ', node_mesh.position)
+
+func create_simple_edge(edge_data: Dictionary):
+	var edge_mesh = MeshInstance3D.new()
+	var cylinder = CylinderMesh.new()
+	
+	cylinder.top_radius = 0.01
+	cylinder.bottom_radius = 0.01  
+	cylinder.height = 1.0
+	
+	edge_mesh.mesh = cylinder
+	
+	var material = StandardMaterial3D.new()
+	material.albedo_color = Color.WHITE
+	edge_mesh.material_override = material
+	
+	edges_container.add_child(edge_mesh)
+	print('[graph 3d] simple edge created')
+"
+
+[node name="Graph3DPlot" type="Node3D"]
+script = SubResource("GDScript_1")
