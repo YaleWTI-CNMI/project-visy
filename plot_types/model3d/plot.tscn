@@ -11,7 +11,14 @@ func update_data(data):
 	var obj_data = data.result.data
 	var model_mesh: Mesh = ObjParse.load_obj_from_buffer(obj_data, {})
 	mesh_inst.mesh = model_mesh
+	
+	if obj_data.caption:
+		$Label3D.text = obj_data.caption
+	else:
+		$Label3D.text = \"\"
+	
 	fit_mesh_instance_to_size(mesh_inst, 0.3)
+	$Label3D.position = $Label3D.position - Vector3(0, mesh_inst.get_aabb(), 0)
 	
 func fit_mesh_instance_to_size(mesh_instance: MeshInstance3D, absolute_size: float) -> void:
 	var mesh := mesh_instance.mesh
@@ -39,6 +46,11 @@ func fit_mesh_instance_to_size(mesh_instance: MeshInstance3D, absolute_size: flo
 
 [node name="Model3DPlot" type="Node3D"]
 script = SubResource("GDScript_lmske")
+
+[node name="Label3D" type="Label3D" parent="."]
+pixel_size = 0.001
+billboard = 1
+text = "dadaa"
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="."]
 material_override = SubResource("StandardMaterial3D_lmske")
