@@ -7,7 +7,7 @@
 resource_local_to_scene = true
 render_priority = 0
 shader = ExtResource("1_24uat")
-shader_parameter/global_size = 1.0
+shader_parameter/global_size = 0.01
 shader_parameter/mark_texture = ExtResource("2_0e84q")
 
 [resource]
