@@ -2,7 +2,7 @@ extends Node
 
 var server_url = "ws://localhost:8765"
 
-var socket = WebSocketPeer.new()
+var socket
 var is_connected: bool = false
 var queue: Array = []
 
@@ -20,7 +20,6 @@ var thread: Thread
 
 
 func _ready() -> void:
-	socket.inbound_buffer_size = 200000000
 	thread = Thread.new()
 	active = true
 	thread.start(_main, Thread.PRIORITY_HIGH)
@@ -28,24 +27,17 @@ func _ready() -> void:
 
 func _exit_tree() -> void:
 	active = false
-	if thread.is_alive():
-		thread.wait_to_finish()
-
-func try_connect(url) -> bool:
-	var err = socket.connect_to_url(url)
-	if err != OK:
-		print("Unable to connect")
-		print("Attempting reconnect")
-	else:
-		print("Connected")
-	
-	return err == OK
+	thread.wait_to_finish()
 
 
 func _main():
 	while active:
-		if not try_connect(server_url):
-			await get_tree().create_timer(3.0).timeout
+		print("Attempting to connect to: ", server_url);
+		socket = WebSocketPeer.new()
+		socket.inbound_buffer_size = 200000000
+		var err = socket.connect_to_url(server_url)
+		if err != OK:
+			printerr(error_string(err))
 			continue
 		
 		socket.poll()
@@ -57,6 +49,7 @@ func _main():
 				if is_connected == false:
 					connected.emit.call_deferred()
 					is_connected = true
+					print("Socket connected!")
 				
 				socket.set_no_delay(true)
 				
@@ -79,13 +72,17 @@ func _main():
 			
 			socket.poll()
 			state = socket.get_ready_state()
-		
+
+	
+		print("Socket dis-connected!")
+
 		var code = socket.get_close_code()
+		is_connected = false
 		disconnected.emit.call_deferred(code)
+	
 		print("WebSocket closed with code: %d. Clean: %s" % [code, code != -1])
 		print("Attempting reconnect")
-		
-		await get_tree().create_timer(1).timeout
+	
 
 
 func process_new_message(data: String):

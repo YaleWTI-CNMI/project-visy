@@ -18,8 +18,9 @@ void vertex() {
 }
 
 void fragment() {
-	vec3 eye_world = CAMERA_POSITION_WORLD + EYE_OFFSET;
-    vec3 ray_dir_world = normalize(world_pos - eye_world);
+	vec3 eye_offset_world = (INV_VIEW_MATRIX * vec4(EYE_OFFSET, 0.0)).xyz;
+	vec3 eye_world = CAMERA_POSITION_WORLD + eye_offset_world;
+	vec3 ray_dir_world = normalize(world_pos - eye_world);
 
     mat4 inv_model = inverse(MODEL_MATRIX);
     vec3 ray_origin = (inv_model * vec4(eye_world, 1.0)).xyz;

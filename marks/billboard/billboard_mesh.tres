@@ -13,4 +13,3 @@ shader_parameter/mark_texture = ExtResource("2_0e84q")
 [resource]
 resource_local_to_scene = true
 material = SubResource("ShaderMaterial_0e84q")
-size = Vector2(0.01, 0.01)

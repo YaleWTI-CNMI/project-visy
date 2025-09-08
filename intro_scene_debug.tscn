@@ -31,9 +31,9 @@ var orbit_vector: Vector3
 
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(\"desktop_camera_zoom_in\"):
-		self.size -= 0.5 * (1 - log(self.size / 3))
+		self.size -= 0.5 * self.size
 	if event.is_action_pressed(\"desktop_camera_zoom_out\"):
-		self.size +=  0.5 * (1 - log(self.size / 3))
+		self.size += 0.5 * self.size
 	
 	if event is InputEventMouseMotion:
 		if Input.is_action_pressed(\"desktop_camera_pan\"):
@@ -149,7 +149,7 @@ size = 3.0
 script = SubResource("GDScript_yk1fk")
 
 [node name="VolumePlot" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport" instance=ExtResource("2_jegsn")]
-transform = Transform3D(0.5, 0, 0, 0, -2.18557e-08, -0.5, 0, 0.5, -2.18557e-08, 0, 0, 0)
+transform = Transform3D(0.5, 0, 0, 0, -2.18557e-08, -0.5, 0, 0.5, -2.18557e-08, 0, 0.55189, 0)
 
 [node name="WSClient" type="Node3D" parent="CanvasLayer/Panel/MarginContainer/HSplitContainer/SubViewportContainer/SubViewport"]
 script = ExtResource("1_0w0bl")
