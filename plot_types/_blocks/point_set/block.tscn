@@ -69,11 +69,11 @@ func update_data(data: Dictionary):
 		_mm.set_instance_color(i, color)
 		_mm.set_instance_custom_data(i, Color(size, 0, 0))
 		
-		
-		#var collision_shape = collision_shape_new(0.01)
-		#interaction.add_child(collision_shape)
-		#collision_shape.position = pos
-		#collision_shape_to_index[collision_shape] = i
+		if count < 50000:
+			var collision_shape = collision_shape_new(0.01)
+			interaction.add_child(collision_shape)
+			collision_shape.position = pos
+			collision_shape_to_index[collision_shape] = i
 
 func _event(event: InteractionController.Event):
 	match event.type:
