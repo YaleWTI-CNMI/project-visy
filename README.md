@@ -12,6 +12,6 @@ Make sure your PCVR OpenXR runtime is set up and your headset is connected (eith
 Simply press the "Play" button in Godot to launch the application. The application will automatically detect and connect to your OpenXR-compatible headset.
 
 
-# Gallery
+# GIF Gallery
 ![visy1](./gallery/visy1.gif)
 ![visy2](./gallery/visy2.gif)
