@@ -1,0 +1,64 @@
+[gd_scene load_steps=7 format=3 uid="uid://dy65rmc1mxlhg"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_inpxm"]
+albedo_color = Color(0.617825, 0.964107, 0.873696, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_ny3xo"]
+material = SubResource("StandardMaterial3D_inpxm")
+radius = 0.2
+height = 0.4
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_ny3xo"]
+radius = 0.216444
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ny3xo"]
+albedo_color = Color(0.659872, 0.227526, 0.40296, 1)
+
+[sub_resource type="SphereMesh" id="SphereMesh_inpxm"]
+material = SubResource("StandardMaterial3D_ny3xo")
+radius = 0.2
+height = 0.4
+
+[sub_resource type="GDScript" id="GDScript_ny3xo"]
+script/source = "extends Camera3D
+
+func _physics_process(delta: float):
+	var time = Time.get_unix_time_from_system()
+	
+	%RigidBody3DA.apply_central_force(Vector3(cos(time * 3) * 4, sin(time * 3) * 4, 0))
+"
+
+[node name="Plot" type="Node3D"]
+
+[node name="RigidBody3DA" type="RigidBody3D" parent="."]
+unique_name_in_owner = true
+gravity_scale = 0.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3DA"]
+mesh = SubResource("SphereMesh_ny3xo")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3DA"]
+shape = SubResource("SphereShape3D_ny3xo")
+
+[node name="RigidBody3DB" type="RigidBody3D" parent="."]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.556398, 0, 0)
+gravity_scale = 0.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3DB"]
+mesh = SubResource("SphereMesh_inpxm")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3DB"]
+shape = SubResource("SphereShape3D_ny3xo")
+
+[node name="ConeTwistJoint3D" type="ConeTwistJoint3D" parent="."]
+node_a = NodePath("../RigidBody3DA")
+node_b = NodePath("../RigidBody3DB")
+
+[node name="SliderJoint3D" type="SliderJoint3D" parent="ConeTwistJoint3D"]
+node_a = NodePath("../../RigidBody3DA")
+node_b = NodePath("../../RigidBody3DB")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.556398, 0, 6.92155)
+script = SubResource("GDScript_ny3xo")

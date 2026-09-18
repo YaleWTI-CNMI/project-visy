@@ -1,9 +1,10 @@
-[gd_scene load_steps=13 format=3 uid="uid://dskyy3mp8r402"]
+[gd_scene load_steps=14 format=3 uid="uid://dskyy3mp8r402"]
 
 [ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
 [ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
 [ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="3_o8unc"]
 [ext_resource type="Script" uid="uid://bg66wus0c31cl" path="res://interaction/interaction_mover.gd" id="4_o8unc"]
+[ext_resource type="PackedScene" uid="uid://cs5w0fs6rrnx2" path="res://plot_types/volume/plot.tscn" id="5_b1u3c"]
 
 [sub_resource type="GDScript" id="GDScript_k2yeb"]
 script/source = "extends Node3D
@@ -223,6 +224,9 @@ environment = NodePath("../WorldEnvironment")
 [node name="PlotSpawnLoc" type="Marker3D" parent="Player/XROrigin3D/XRCamera3D" index="0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.846318)
 
+[node name="Skeleton3D" parent="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left" index="0"]
+bones/4/scale = Vector3(1, 1, 1)
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_haax2")
 
@@ -255,6 +259,23 @@ surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.69)
 script = SubResource("GDScript_2glrg")
 plot_spawn_loc = NodePath("../Player/XROrigin3D/XRCamera3D/PlotSpawnLoc")
+
+[node name="VolumePlot" parent="." instance=ExtResource("5_b1u3c")]
+transform = Transform3D(0.5, 0, 0, 0, -2.18557e-08, -0.5, 0, 0.5, -2.18557e-08, 0, 2, 0)
+
+[node name="InteractionMover" type="Area3D" parent="VolumePlot" node_paths=PackedStringArray("remote_path", "bounds_path")]
+script = ExtResource("4_o8unc")
+remote_path = NodePath("..")
+bounds_path = NodePath("../MeshInstance3D")
+metadata/_custom_type_script = "uid://bg66wus0c31cl"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VolumePlot/InteractionMover"]
+transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
+shape = SubResource("CapsuleShape3D_o8unc")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="VolumePlot/InteractionMover/CollisionShape3D"]
+mesh = SubResource("CapsuleMesh_o8unc")
+surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
 [editable path="Player"]
 [editable path="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left"]

@@ -51,15 +51,19 @@ func update_data(data: Dictionary):
 		var z = remap(data.z[i], data.zlim[0], data.zlim[1], -1, 1)
 		var pos = Vector3(x, y, z)
 		
-		var color = Color(data.color.r, data.color.g, data.color.b)
+		var color = Color(1, 1, 1)
+		if data.color is Array:
+			color = Color(data.color[i].r, data.color[i].g, data.color[i].b)
+		elif data.color is Dictionary:
+			color = Color(data.color.r, data.color.g, data.color.b)
 		
 		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pos))
 		_mm.set_instance_color(i, color)
 		
-		var collision_shape = collision_shape_new(0.01)
-		interaction.add_child(collision_shape)
-		collision_shape.position = pos
-		collision_shape_to_index[collision_shape] = i
+		#var collision_shape = collision_shape_new(0.01)
+		#interaction.add_child(collision_shape)
+		#collision_shape.position = pos
+		#collision_shape_to_index[collision_shape] = i
 
 func _event(event: InteractionController.Event):
 	match event.type:
@@ -85,8 +89,8 @@ resource_local_to_scene = true
 material = SubResource("StandardMaterial3D_3mtqu")
 radius = 0.01
 height = 0.02
-radial_segments = 8
-rings = 8
+radial_segments = 4
+rings = 1
 
 [sub_resource type="MultiMesh" id="MultiMesh_3mtqu"]
 transform_format = 1

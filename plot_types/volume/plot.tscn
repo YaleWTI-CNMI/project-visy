@@ -1,0 +1,66 @@
+[gd_scene load_steps=12 format=3 uid="uid://cs5w0fs6rrnx2"]
+
+[ext_resource type="Shader" uid="uid://bckbmdtxvucxr" path="res://plot_types/volume/volume.gdshader" id="1_25k4m"]
+[ext_resource type="CompressedTexture3D" uid="uid://dliiyrb7ot66v" path="res://CThead_stitched.png" id="2_a7tqf"]
+[ext_resource type="Script" uid="uid://c5043rxi7olwp" path="res://plot_types/volume/cthead_loader.gd" id="3_a7tqf"]
+[ext_resource type="PackedScene" uid="uid://dk1wvvqyejctf" path="res://plot_types/volume/location_grip.tscn" id="4_00mdf"]
+
+[sub_resource type="GDScript" id="GDScript_00mdf"]
+script/source = "extends Node3D
+
+func _process(delta: float) -> void:
+	var shader_mat = $MeshInstance3D.get_active_material(0) as ShaderMaterial
+	shader_mat.set_shader_parameter(\"low_clamp\", %LowGrip.position)
+	shader_mat.set_shader_parameter(\"high_clamp\", %HighGrip.position)
+"
+
+[sub_resource type="Gradient" id="Gradient_00mdf"]
+interpolation_mode = 1
+offsets = PackedFloat32Array(0, 0.197628, 0.416996, 0.820158)
+colors = PackedColorArray(0.511184, 0.260042, 4.81308e-08, 1, 0.562079, 0.000790692, 0.66736, 1, 5.39064e-06, 0.70544, 0.845679, 1, 0, 0.756634, 0.409919, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_8ouyt"]
+gradient = SubResource("Gradient_00mdf")
+
+[sub_resource type="Gradient" id="Gradient_a7tqf"]
+offsets = PackedFloat32Array(0, 0.0531915, 0.383399, 0.968085, 0.996454, 1)
+colors = PackedColorArray(0, 0, 0, 1, 0, 0, 0, 1, 0.0338533, 0.0338533, 0.0338533, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_00mdf"]
+gradient = SubResource("Gradient_a7tqf")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_5v7j2"]
+render_priority = 0
+shader = ExtResource("1_25k4m")
+shader_parameter/volume_data = ExtResource("2_a7tqf")
+shader_parameter/steps = 128.0
+shader_parameter/contrast = 1.0
+shader_parameter/filter_tex = SubResource("GradientTexture1D_00mdf")
+shader_parameter/color_map = SubResource("GradientTexture1D_8ouyt")
+shader_parameter/low_clamp = Vector3(0, 0, 0)
+shader_parameter/high_clamp = Vector3(1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tew07"]
+lightmap_size_hint = Vector2i(14, 21)
+material = SubResource("ShaderMaterial_5v7j2")
+
+[node name="VolumePlot" type="Node3D"]
+script = SubResource("GDScript_00mdf")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0)
+mesh = SubResource("BoxMesh_tew07")
+
+[node name="GripsOrigin" type="Node3D" parent="MeshInstance3D"]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.5, -0.5, -0.5)
+
+[node name="LowGrip" parent="MeshInstance3D/GripsOrigin" instance=ExtResource("4_00mdf")]
+unique_name_in_owner = true
+
+[node name="HighGrip" parent="MeshInstance3D/GripsOrigin" instance=ExtResource("4_00mdf")]
+unique_name_in_owner = true
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1)
+
+[node name="Node" type="Node" parent="."]
+script = ExtResource("3_a7tqf")
