@@ -18,7 +18,9 @@ func update_data(data: Dictionary) -> void:
 		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	if data.result.has("color"):
 		var color: Dictionary = data.result.color
-		material.albedo_color = Color(color.r, color.g, color.b).srgb_to_linear()
+		material.albedo_color = Color(color.r, color.g, color.b)
+		if RenderingServer.get_current_rendering_method() != "gl_compatibility":
+			material.albedo_color = material.albedo_color.srgb_to_linear()
 	mesh_inst.material_override = material
 	var bounds := model_mesh.get_aabb()
 	var extent := maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z))

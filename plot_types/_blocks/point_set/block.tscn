@@ -37,6 +37,12 @@ func collision_shape_new(radius: float = 0.05):
 	
 	return collision_shape
 
+func _render_color(color: Color) -> Color:
+	# Compatibility consumes sRGB colors; Forward+/Mobile use linear colors.
+	if RenderingServer.get_current_rendering_method() == \"gl_compatibility\":
+		return color
+	return color.srgb_to_linear()
+
 func update_data(data: Dictionary):
 	vrid = data.vrid
 	
@@ -56,9 +62,9 @@ func update_data(data: Dictionary):
 		
 		var color = Color(1, 1, 1)
 		if data.color is Array:
-			color = Color(data.color[i].r, data.color[i].g, data.color[i].b).srgb_to_linear()
+			color = _render_color(Color(data.color[i].r, data.color[i].g, data.color[i].b))
 		elif data.color is Dictionary:
-			color = Color(data.color.r, data.color.g, data.color.b).srgb_to_linear()
+			color = _render_color(Color(data.color.r, data.color.g, data.color.b))
 
 		var size: float = 0.001
 		if data.get(\"size\") is float:
