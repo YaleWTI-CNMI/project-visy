@@ -1,4 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://dt78cv24kohhs"]
+[gd_scene format=3 uid="uid://dt78cv24kohhs"]
+
+[ext_resource type="QuadMesh" uid="uid://byloc4tdcqojm" path="res://marks/billboard/billboard_mesh.tres" id="1_ywgo7"]
 
 [sub_resource type="GDScript" id="GDScript_3mtqu"]
 resource_name = "PointSet"
@@ -22,6 +24,7 @@ var collision_shape_to_index: Dictionary[CollisionShape3D, int]
 var _last_hover_index = -1
 
 func _ready():
+	add_to_group(\"desktop_point_sets\")
 	interaction.evented.connect(_event)
 
 func collision_shape_new(radius: float = 0.05):
@@ -33,6 +36,12 @@ func collision_shape_new(radius: float = 0.05):
 	collision_shape.shape = sphere
 	
 	return collision_shape
+
+func _render_color(color: Color) -> Color:
+	# Compatibility consumes sRGB colors; Forward+/Mobile use linear colors.
+	if RenderingServer.get_current_rendering_method() == \"gl_compatibility\":
+		return color
+	return color.srgb_to_linear()
 
 func update_data(data: Dictionary):
 	vrid = data.vrid
@@ -53,26 +62,35 @@ func update_data(data: Dictionary):
 		
 		var color = Color(1, 1, 1)
 		if data.color is Array:
-			color = Color(data.color[i].r, data.color[i].g, data.color[i].b)
+			color = _render_color(Color(data.color[i].r, data.color[i].g, data.color[i].b))
 		elif data.color is Dictionary:
-			color = Color(data.color.r, data.color.g, data.color.b)
-		
+			color = _render_color(Color(data.color.r, data.color.g, data.color.b))
+
+		var size: float = 0.001
+		if data.get(\"size\") is float:
+			size = data.get(\"size\")
+		elif data.get(\"size\") is Array:
+			size = data.get(\"size\")[i]
+
 		_mm.set_instance_transform(i, Transform3D(Basis.IDENTITY, pos))
 		_mm.set_instance_color(i, color)
+		_mm.set_instance_custom_data(i, Color(size, 0, 0))
 		
-		#var collision_shape = collision_shape_new(0.01)
-		#interaction.add_child(collision_shape)
-		#collision_shape.position = pos
-		#collision_shape_to_index[collision_shape] = i
+		if count < 50000:
+			var collision_shape = collision_shape_new(0.01)
+			interaction.add_child(collision_shape)
+			collision_shape.position = pos
+			collision_shape_to_index[collision_shape] = i
 
 func _event(event: InteractionController.Event):
 	match event.type:
 		InteractionController.EventType.HOVER:
 			if _last_hover_index != -1:
-				_mm.set_instance_color(_last_hover_index, Color.WHITE)
+				pass
+				#_mm.set_instance_color(_last_hover_index, Color.WHITE)
 
 			_last_hover_index = collision_shape_to_index[event.collision_info.collision_shape]
-			_mm.set_instance_color(_last_hover_index, Color.YELLOW_GREEN)
+			#_mm.set_instance_color(_last_hover_index, Color.YELLOW_GREEN)
 			pass
 		InteractionController.EventType.BUTTON_PRESS:
 			var index = collision_shape_to_index[event.collision_info.collision_shape]
@@ -80,23 +98,12 @@ func _event(event: InteractionController.Event):
 			
 "
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_3mtqu"]
-shading_mode = 0
-vertex_color_use_as_albedo = true
-
-[sub_resource type="SphereMesh" id="SphereMesh_ywgo7"]
-resource_local_to_scene = true
-material = SubResource("StandardMaterial3D_3mtqu")
-radius = 0.01
-height = 0.02
-radial_segments = 4
-rings = 1
-
 [sub_resource type="MultiMesh" id="MultiMesh_3mtqu"]
+resource_local_to_scene = true
 transform_format = 1
 use_colors = true
 use_custom_data = true
-mesh = SubResource("SphereMesh_ywgo7")
+mesh = ExtResource("1_ywgo7")
 
 [sub_resource type="GDScript" id="GDScript_ywgo7"]
 resource_name = "Interaction"
@@ -109,13 +116,13 @@ func interaction_event(event: InteractionController.Event):
 	pass
 "
 
-[node name="PointSet" type="Node3D"]
+[node name="PointSet" type="Node3D" unique_id=1184707878]
 script = SubResource("GDScript_3mtqu")
 
-[node name="MultiMeshInstance" type="MultiMeshInstance3D" parent="."]
+[node name="MultiMeshInstance" type="MultiMeshInstance3D" parent="." unique_id=560294454]
 multimesh = SubResource("MultiMesh_3mtqu")
 
-[node name="Interaction" type="Area3D" parent="."]
+[node name="Interaction" type="Area3D" parent="." unique_id=824634941]
 unique_name_in_owner = true
 monitoring = false
 monitorable = false

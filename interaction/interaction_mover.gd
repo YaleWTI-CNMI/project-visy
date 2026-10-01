@@ -7,6 +7,7 @@ var lock_button_name = "trigger_click"
 var _icontroller: InteractionController
 var transform_offset: Transform3D
 var manual_dist_offset: float = 0.0
+var manual_scale: float = 1.0
 var target_transform: Transform3D
 
 @export var remote_path: Node3D
@@ -48,6 +49,7 @@ func interaction_event(event: InteractionController.Event):
 									remote_path.global_transform
 		
 				manual_dist_offset = 0.0
+				manual_scale = 1.0
 				event.icontroller.grab_pointer(self, event.collision_info.hit_location)
 			pass
 		
@@ -78,19 +80,25 @@ func _process(delta: float) -> void:
 	
 	if _icontroller:
 		manual_dist_offset -= _icontroller.controller.get_vector2("primary").y * delta * 1.5
+		
+		manual_scale = max(0.1, manual_scale + _icontroller.controller.get_vector2("primary").x * delta * 0.5) 
   		
 		target_transform = _icontroller.global_transform \
 				 						.translated(remote_path.global_position - self.global_position) \
 							* transform_offset
 		target_transform = target_transform \
 							.translated((_icontroller.global_position - target_transform.origin).normalized() * manual_dist_offset)
-		
+
+		target_transform = target_transform \
+						.scaled_local(Vector3(manual_scale, manual_scale, manual_scale))
+						
 		if _icontroller.controller.is_button_pressed("ax_button"):
 			target_transform.origin = remote_path.global_transform.origin
 			target_transform = target_transform \
 								.looking_at(_icontroller.global_transform.origin, Vector3(0, 1, 0), true) \
 								.scaled(remote_path.scale)
 			target_transform.origin = remote_path.global_transform.origin
+
 
 
 	if _icontroller or (target_transform and not target_transform.is_equal_approx(remote_path.global_transform)):

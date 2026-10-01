@@ -7,8 +7,8 @@ uniform sampler2D mark_texture : filter_nearest;
 
 void vertex() {
 	VERTEX *= global_size;
-	//VERTEX *= INSTANCE_CUSTOM.x;
-	
+	VERTEX *= INSTANCE_CUSTOM.r;
+
 	 // Get the model position in world space
     vec3 model_pos = MODEL_MATRIX[3].xyz;
 

@@ -1,5 +1,5 @@
 shader_type spatial;
-render_mode unshaded, cull_disabled;
+render_mode unshaded, cull_front;
 
 uniform sampler3D volume_data;
 uniform float steps = 64.0;
@@ -18,20 +18,21 @@ void vertex() {
 }
 
 void fragment() {
-	//vec3 eye_world = CAMERA_POSITION_WORLD + EYE_OFFSET;
-    //vec3 ray_dir_world = normalize(world_pos - eye_world);
+	vec3 eye_offset_world = (INV_VIEW_MATRIX * vec4(EYE_OFFSET, 0.0)).xyz;
+	vec3 eye_world = CAMERA_POSITION_WORLD + eye_offset_world;
+	vec3 ray_dir_world = normalize(world_pos - eye_world);
 
     mat4 inv_model = inverse(MODEL_MATRIX);
-    //vec3 ray_origin = (inv_model * vec4(eye_world, 1.0)).xyz;
-    //vec3 ray_dir = normalize((inv_model * vec4(ray_dir_world, 0.0)).xyz);
+    vec3 ray_origin = (inv_model * vec4(eye_world, 1.0)).xyz;
+    vec3 ray_dir = normalize((inv_model * vec4(ray_dir_world, 0.0)).xyz);
 
 	// Transform both eye and frag positions into object space
-	vec3 eye_world = CAMERA_POSITION_WORLD;
-	vec3 eye_obj = (inverse(MODEL_MATRIX) * vec4(eye_world, 1.0)).xyz;
+	//vec3 eye_world = CAMERA_POSITION_WORLD;
+	//vec3 eye_obj = (inverse(MODEL_MATRIX) * vec4(eye_world, 1.0)).xyz;
 
-	vec3 frag_obj = (inverse(MODEL_MATRIX) * vec4(world_pos, 1.0)).xyz;
-	vec3 ray_dir = normalize(frag_obj - eye_obj);
-	vec3 ray_origin = eye_obj;
+	//vec3 frag_obj = (inverse(MODEL_MATRIX) * vec4(world_pos, 1.0)).xyz;
+	//vec3 ray_dir = normalize(frag_obj - eye_obj);
+	//vec3 ray_origin = eye_obj;
 
 
     vec3 box_min = vec3(-0.5);
