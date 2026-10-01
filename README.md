@@ -1,6 +1,6 @@
 # VISY — Godot desktop client
 
-Use this repository's `desktop-onboarding` branch with the Python repository's matching branch. For the full setup and the commands to enter in the VISYB shell, see **[the Python quick start](../visyb/README.md)** in a sibling checkout.
+Use this repository's `desktop-onboarding` branch with the Python repository's matching branch. For the full setup and the commands to enter in the VISYB shell, see **[the illustrated macOS desktop tutorial](https://github.com/YaleWTI-CNMI/visyb/blob/desktop-onboarding/docs/visy-desktop-tutorial.md)** or [the Python quick start](https://github.com/YaleWTI-CNMI/visyb/blob/desktop-onboarding/README.md).
 
 1. Install the standard [Godot 4.6 macOS editor](https://godotengine.org/download/archive/4.6-stable/).
 2. Import this repository's `project.godot` in Godot. Let the first import finish.
