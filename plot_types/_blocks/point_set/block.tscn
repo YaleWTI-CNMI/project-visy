@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://dt78cv24kohhs"]
+[gd_scene format=3 uid="uid://dt78cv24kohhs"]
 
 [ext_resource type="QuadMesh" uid="uid://byloc4tdcqojm" path="res://marks/billboard/billboard_mesh.tres" id="1_ywgo7"]
 
@@ -55,9 +55,9 @@ func update_data(data: Dictionary):
 		
 		var color = Color(1, 1, 1)
 		if data.color is Array:
-			color = Color(data.color[i].r, data.color[i].g, data.color[i].b)
+			color = Color(data.color[i].r, data.color[i].g, data.color[i].b).srgb_to_linear()
 		elif data.color is Dictionary:
-			color = Color(data.color.r, data.color.g, data.color.b)
+			color = Color(data.color.r, data.color.g, data.color.b).srgb_to_linear()
 
 		var size: float = 0.001
 		if data.get(\"size\") is float:
@@ -79,10 +79,11 @@ func _event(event: InteractionController.Event):
 	match event.type:
 		InteractionController.EventType.HOVER:
 			if _last_hover_index != -1:
-				_mm.set_instance_color(_last_hover_index, Color.WHITE)
+				pass
+				#_mm.set_instance_color(_last_hover_index, Color.WHITE)
 
 			_last_hover_index = collision_shape_to_index[event.collision_info.collision_shape]
-			_mm.set_instance_color(_last_hover_index, Color.YELLOW_GREEN)
+			#_mm.set_instance_color(_last_hover_index, Color.YELLOW_GREEN)
 			pass
 		InteractionController.EventType.BUTTON_PRESS:
 			var index = collision_shape_to_index[event.collision_info.collision_shape]
@@ -107,13 +108,13 @@ func interaction_event(event: InteractionController.Event):
 	pass
 "
 
-[node name="PointSet" type="Node3D"]
+[node name="PointSet" type="Node3D" unique_id=1184707878]
 script = SubResource("GDScript_3mtqu")
 
-[node name="MultiMeshInstance" type="MultiMeshInstance3D" parent="."]
+[node name="MultiMeshInstance" type="MultiMeshInstance3D" parent="." unique_id=560294454]
 multimesh = SubResource("MultiMesh_3mtqu")
 
-[node name="Interaction" type="Area3D" parent="."]
+[node name="Interaction" type="Area3D" parent="." unique_id=824634941]
 unique_name_in_owner = true
 monitoring = false
 monitorable = false

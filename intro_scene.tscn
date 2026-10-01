@@ -1,152 +1,10 @@
-[gd_scene load_steps=14 format=3 uid="uid://dskyy3mp8r402"]
+[gd_scene format=3 uid="uid://dskyy3mp8r402"]
 
 [ext_resource type="PackedScene" uid="uid://cy6h0ijakruqa" path="res://player/player.tscn" id="1_0crdm"]
 [ext_resource type="PackedScene" uid="uid://c0n8fp6o5t2mh" path="res://ui/xr_window.tscn" id="1_dkjm7"]
 [ext_resource type="PackedScene" uid="uid://dpexdaave61u7" path="res://ui/mods_panel/mods_panel.tscn" id="3_o8unc"]
 [ext_resource type="Script" uid="uid://bg66wus0c31cl" path="res://interaction/interaction_mover.gd" id="4_o8unc"]
 [ext_resource type="PackedScene" uid="uid://cs5w0fs6rrnx2" path="res://plot_types/volume/plot.tscn" id="5_b1u3c"]
-
-[sub_resource type="GDScript" id="GDScript_k2yeb"]
-script/source = "extends Node3D
-
-signal focus_lost
-signal focus_gained
-signal pose_recentered
-
-@export var maximum_refresh_rate : int = 90
-@export var environment : WorldEnvironment
-
-var xr_interface : OpenXRInterface
-var xr_is_focussed = false
-
-# Called when the node enters the scene tree for the first time.
-func _ready():
-	xr_interface = XRServer.find_interface(\"OpenXR\")
-	if xr_interface and xr_interface.is_initialized():
-		print(\"OpenXR instantiated successfully.\")
-		var vp : Viewport = get_viewport()
-
-		# Enable XR on our viewport
-		vp.use_xr = true
-
-		# Make sure v-sync is off, v-sync is handled by OpenXR
-		DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
-
-		# Enable VRS
-		if RenderingServer.get_rendering_device():
-			vp.vrs_mode = Viewport.VRS_XR
-		elif int(ProjectSettings.get_setting(\"xr/openxr/foveation_level\")) == 0:
-			push_warning(\"OpenXR: Recommend setting Foveation level to High in Project Settings\")
-
-		# Connect the OpenXR events
-		xr_interface.session_begun.connect(_on_openxr_session_begun)
-		xr_interface.session_visible.connect(_on_openxr_visible_state)
-		xr_interface.session_focussed.connect(_on_openxr_focused_state)
-		xr_interface.session_stopping.connect(_on_openxr_stopping)
-		xr_interface.pose_recentered.connect(_on_openxr_pose_recentered)
-		
-		# Enable AR
-		var modes = xr_interface.get_supported_environment_blend_modes()
-		if XRInterface.XR_ENV_BLEND_MODE_ALPHA_BLEND in modes:
-			xr_interface.environment_blend_mode = XRInterface.XR_ENV_BLEND_MODE_ALPHA_BLEND
-			vp.transparent_bg = true
-		elif XRInterface.XR_ENV_BLEND_MODE_ADDITIVE in modes:
-			xr_interface.environment_blend_mode = XRInterface.XR_ENV_BLEND_MODE_ADDITIVE
-			vp.transparent_bg = false		
-			
-		environment.environment.background_mode = Environment.BG_COLOR
-		environment.environment.background_color = Color(0.0, 0.0, 0.0, 0.0)
-		environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR	
-			
-		
-		#switch_to_vr()
-			
-	else:
-		# We couldn't start OpenXR.
-		print(\"OpenXR not instantiated!\")
-		get_tree().quit()
-
-func switch_to_vr() -> bool:
-	var xr_interface: XRInterface = XRServer.primary_interface
-	if xr_interface:
-		var modes = xr_interface.get_supported_environment_blend_modes()
-		if XRInterface.XR_ENV_BLEND_MODE_OPAQUE in modes:
-			xr_interface.environment_blend_mode = XRInterface.XR_ENV_BLEND_MODE_OPAQUE
-		else:
-			return false
-
-	var vp : Viewport = get_viewport()
-	vp.transparent_bg = false
-	environment.environment.background_mode = Environment.BG_SKY
-	environment.environment.ambient_light_source = Environment.AMBIENT_SOURCE_BG
-	return true
-	
-# Handle OpenXR session ready
-func _on_openxr_session_begun() -> void:
-	# Get the reported refresh rate
-	var current_refresh_rate = xr_interface.get_display_refresh_rate()
-	if current_refresh_rate > 0:
-		print(\"OpenXR: Refresh rate reported as \", str(current_refresh_rate))
-	else:
-		print(\"OpenXR: No refresh rate given by XR runtime\")
-
-	# See if we have a better refresh rate available
-	var new_rate = current_refresh_rate
-	var available_rates : Array = xr_interface.get_available_display_refresh_rates()
-	if available_rates.size() == 0:
-		print(\"OpenXR: Target does not support refresh rate extension\")
-	elif available_rates.size() == 1:
-		# Only one available, so use it
-		new_rate = available_rates[0]
-	else:
-		for rate in available_rates:
-			if rate > new_rate and rate <= maximum_refresh_rate:
-				new_rate = rate
-
-	# Did we find a better rate?
-	if current_refresh_rate != new_rate:
-		print(\"OpenXR: Setting refresh rate to \", str(new_rate))
-		xr_interface.set_display_refresh_rate(new_rate)
-		current_refresh_rate = new_rate
-
-	# Now match our physics rate
-	Engine.physics_ticks_per_second = current_refresh_rate
-
-# Handle OpenXR visible state
-func _on_openxr_visible_state() -> void:
-	# We always pass this state at startup,
-	# but the second time we get this it means our player took off their headset
-	if xr_is_focussed:
-		print(\"OpenXR lost focus\")
-
-		xr_is_focussed = false
-
-		# pause our game
-		get_tree().paused = true
-
-		emit_signal(\"focus_lost\")
-
-# Handle OpenXR focused state
-func _on_openxr_focused_state() -> void:
-	print(\"OpenXR gained focus\")
-	xr_is_focussed = true
-
-	# unpause our game
-	get_tree().paused = false
-
-	emit_signal(\"focus_gained\")
-
-# Handle OpenXR stopping state
-func _on_openxr_stopping() -> void:
-	# Our session is being stopped.
-	print(\"OpenXR is stopping\")
-
-# Handle OpenXR pose recentered signal
-func _on_openxr_pose_recentered() -> void:
-	# User recentered view, we have to react to this by recentering the view.
-	# This is game implementation dependent.
-	emit_signal(\"pose_recentered\")
-"
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_ivaup"]
 sky_horizon_color = Color(0.64625, 0.65575, 0.67075, 1)
@@ -212,68 +70,69 @@ func _on_client_disconnected(code):
 	get_tree().call_group(\"plots\", \"queue_free\")
 "
 
-[node name="Node3D" type="Node3D"]
+[node name="Node3D" type="Node3D" unique_id=532489886]
 
-[node name="XRManager" type="Node3D" parent="." node_paths=PackedStringArray("environment")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.536682, 1.7, -1)
-script = SubResource("GDScript_k2yeb")
-environment = NodePath("../WorldEnvironment")
-
-[node name="Player" parent="." instance=ExtResource("1_0crdm")]
-
-[node name="PlotSpawnLoc" type="Marker3D" parent="Player/XROrigin3D/XRCamera3D" index="0"]
+[node name="Player_XROrigin3D_XRCamera3D#PlotSpawnLoc" type="Marker3D" parent="." unique_id=260980093]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.846318)
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="Player" parent="." unique_id=681165217 instance=ExtResource("1_0crdm")]
+
+[node name="XRManager" parent="Player/SubViewport" parent_id_path=PackedInt32Array(681165217, 1688017247) index="1" unique_id=1496056594 node_paths=PackedStringArray("environment")]
+environment = NodePath("../../../WorldEnvironment")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=42223681]
 environment = SubResource("Environment_haax2")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment"]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="WorldEnvironment" unique_id=2020110141]
 transform = Transform3D(1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 0, 0)
+directional_shadow_mode = 0
 sky_mode = 1
 
-[node name="XRWindow" parent="." instance=ExtResource("1_dkjm7")]
+[node name="XRWindow" parent="." unique_id=2070580042 instance=ExtResource("1_dkjm7")]
 transform = Transform3D(0.693112, 0, -0.720829, 0, 1, 0, 0.720829, 0, 0.693112, 0.719632, 1.001, -0.532356)
 ui_scene = ExtResource("3_o8unc")
 window_scale = 0.3
 size_2d = Vector2(800, 500)
 
-[node name="InteractionMover" type="Area3D" parent="XRWindow" node_paths=PackedStringArray("remote_path", "bounds_path")]
+[node name="InteractionMover" type="Area3D" parent="XRWindow" unique_id=1286359473 node_paths=PackedStringArray("remote_path", "bounds_path")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00390625, -0.166095, 0.0342275)
 script = ExtResource("4_o8unc")
 remote_path = NodePath("..")
 bounds_path = NodePath("../MeshInstance")
 metadata/_custom_type_script = "uid://bg66wus0c31cl"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="XRWindow/InteractionMover"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="XRWindow/InteractionMover" unique_id=1865249349]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
 shape = SubResource("CapsuleShape3D_o8unc")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="XRWindow/InteractionMover/CollisionShape3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="XRWindow/InteractionMover/CollisionShape3D" unique_id=1810082119]
+layers = 2
 mesh = SubResource("CapsuleMesh_o8unc")
 surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
-[node name="PlotSpawner" type="Node3D" parent="." node_paths=PackedStringArray("plot_spawn_loc")]
+[node name="PlotSpawner" type="Node3D" parent="." unique_id=907836960 node_paths=PackedStringArray("plot_spawn_loc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.69)
 script = SubResource("GDScript_2glrg")
-plot_spawn_loc = NodePath("../Player/XROrigin3D/XRCamera3D/PlotSpawnLoc")
+plot_spawn_loc = NodePath("../Player/SubViewport/XROrigin3D/XRCamera3D")
 
-[node name="VolumePlot" parent="." instance=ExtResource("5_b1u3c")]
+[node name="VolumePlot" parent="." unique_id=1164395916 instance=ExtResource("5_b1u3c")]
 transform = Transform3D(0.5, 0, 0, 0, -2.18557e-08, -0.5, 0, 0.5, -2.18557e-08, 0, 2, 0)
 
-[node name="InteractionMover" type="Area3D" parent="VolumePlot" node_paths=PackedStringArray("remote_path", "bounds_path")]
+[node name="InteractionMover" type="Area3D" parent="VolumePlot" unique_id=288196597 node_paths=PackedStringArray("remote_path", "bounds_path")]
 script = ExtResource("4_o8unc")
 remote_path = NodePath("..")
 bounds_path = NodePath("../MeshInstance3D")
 metadata/_custom_type_script = "uid://bg66wus0c31cl"
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="VolumePlot/InteractionMover"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="VolumePlot/InteractionMover" unique_id=958770272]
 transform = Transform3D(-4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0, 0, 1, 0, 0, 0)
 shape = SubResource("CapsuleShape3D_o8unc")
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="VolumePlot/InteractionMover/CollisionShape3D"]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="VolumePlot/InteractionMover/CollisionShape3D" unique_id=1873974586]
+layers = 2
 mesh = SubResource("CapsuleMesh_o8unc")
 surface_material_override/0 = SubResource("StandardMaterial3D_b1u3c")
 
 [editable path="Player"]
-[editable path="Player/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left"]
-[editable path="Player/XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right"]
+[editable path="Player/SubViewport/XROrigin3D/XRLeftController3D/MetaQuestTouchPlus_Left"]
+[editable path="Player/SubViewport/XROrigin3D/XRRightController3D/MetaQuestTouchPlus_Right"]

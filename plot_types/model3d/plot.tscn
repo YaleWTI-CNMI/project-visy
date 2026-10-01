@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://diuinx5qakpka"]
+[gd_scene format=3 uid="uid://diuinx5qakpka"]
 
 [ext_resource type="PackedScene" uid="uid://dweo5xwvxuk6k" path="res://interaction/object_pill.tscn" id="1_0vc8t"]
 
@@ -12,10 +12,16 @@ func update_data(data):
 	var model_mesh: Mesh = ObjParse.load_obj_from_buffer(obj_data, {})
 	mesh_inst.mesh = model_mesh
 	
-	if \"caption\" in obj_data:
-		$Label3D.text = obj_data.caption
+	if \"caption\" in data.result:
+		$Label3D.text = data.result.caption
 	else:
 		$Label3D.text = \"\"
+	
+	if \"color\" in data.result:
+		var r = float(data.result.color.r)
+		var g = float(data.result.color.g)
+		var b = float(data.result.color.b)
+		mesh_inst.material_override.albedo_color = Color(r, g, b).srgb_to_linear()
 	
 	fit_mesh_instance_to_size(mesh_inst, 0.3)
 	$Label3D.position = $Label3D.position - Vector3(0, 0.2, 0)
@@ -42,20 +48,37 @@ func fit_mesh_instance_to_size(mesh_instance: MeshInstance3D, absolute_size: flo
 	mesh_instance.transform = transform
 "
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lmske"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_0vc8t"]
+render_priority = 1
+transparency = 1
+shading_mode = 0
+albedo_color = Color(0, 0, 0, 1)
+grow = true
+grow_amount = 0.18
+stencil_mode = 3
+stencil_flags = 1
+stencil_compare = 5
+metadata/_stencil_owned = true
 
-[node name="Model3DPlot" type="Node3D"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lmske"]
+resource_local_to_scene = true
+next_pass = SubResource("StandardMaterial3D_0vc8t")
+stencil_mode = 1
+stencil_flags = 2
+stencil_outline_thickness = 0.18
+
+[node name="Model3DPlot" type="Node3D" unique_id=1943074994]
 script = SubResource("GDScript_lmske")
 
-[node name="Label3D" type="Label3D" parent="."]
-pixel_size = 0.001
+[node name="Label3D" type="Label3D" parent="." unique_id=1843764302]
+pixel_size = 0.0005
 billboard = 1
 text = "dadaa"
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+[node name="MeshInstance3D" type="MeshInstance3D" parent="." unique_id=1539430569]
 material_override = SubResource("StandardMaterial3D_lmske")
 
-[node name="ObjectPill" parent="." node_paths=PackedStringArray("remote_path", "bounds_path") instance=ExtResource("1_0vc8t")]
+[node name="ObjectPill" parent="." unique_id=250580831 node_paths=PackedStringArray("remote_path", "bounds_path") instance=ExtResource("1_0vc8t")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.318777, 0)
 remote_path = NodePath("..")
 bounds_path = NodePath("../MeshInstance3D")
