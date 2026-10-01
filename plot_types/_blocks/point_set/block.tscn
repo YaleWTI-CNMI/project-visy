@@ -24,6 +24,7 @@ var collision_shape_to_index: Dictionary[CollisionShape3D, int]
 var _last_hover_index = -1
 
 func _ready():
+	add_to_group(\"desktop_point_sets\")
 	interaction.evented.connect(_event)
 
 func collision_shape_new(radius: float = 0.05):
@@ -91,6 +92,7 @@ func _event(event: InteractionController.Event):
 "
 
 [sub_resource type="MultiMesh" id="MultiMesh_3mtqu"]
+resource_local_to_scene = true
 transform_format = 1
 use_colors = true
 use_custom_data = true

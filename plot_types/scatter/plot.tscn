@@ -147,9 +147,3 @@ script = ExtResource("3_reog7")
 [node name="CollisionShape3D" type="CollisionShape3D" parent="InteractionReceiver"]
 shape = SubResource("BoxShape3D_reog7")
 
-[node name="Label3D" type="Label3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00585055, 0.00187945, 0.00296235)
-pixel_size = 0.001
-billboard = 2
-text = "Hey"
-font_size = 1067

@@ -3,3 +3,7 @@
 android/
 exported/
 .DS_Store
+
+*.tmp
+*.log
+.DS_Store
