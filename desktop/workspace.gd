@@ -63,6 +63,8 @@ func _update_plot(data: Dictionary) -> void:
 		print("VISY_UPDATED id=%d" % id)
 
 func _style_plot(plot: Node3D, type: String) -> void:
+	if type == "model3d":
+		plot.get_node("Label3D").pixel_size = 0.001
 	if type == "builder":
 		plot.get_node("MeshInstance3D").hide()
 	for point_set in plot.find_children("*", "Node3D", true, false):

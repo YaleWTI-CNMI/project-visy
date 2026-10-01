@@ -10,11 +10,15 @@ func update_data(data: Dictionary) -> void:
 	mesh_inst.mesh = model_mesh
 	$Label3D.text = data.result.get("caption", "")
 	$Label3D.position = Vector3(0, -0.2, 0)
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var material: StandardMaterial3D = mesh_inst.material_override.duplicate(true)
+	if RenderingServer.get_current_rendering_method() == "gl_compatibility":
+		# Stencil outlines are unsupported by Compatibility; retain them for XR renderers.
+		material.stencil_mode = 0
+		material.next_pass = null
+		material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 	if data.result.has("color"):
 		var color: Dictionary = data.result.color
-		material.albedo_color = Color(color.r, color.g, color.b)
+		material.albedo_color = Color(color.r, color.g, color.b).srgb_to_linear()
 	mesh_inst.material_override = material
 	var bounds := model_mesh.get_aabb()
 	var extent := maxf(bounds.size.x, maxf(bounds.size.y, bounds.size.z))

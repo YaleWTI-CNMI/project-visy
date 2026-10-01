@@ -1,4 +1,4 @@
-[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://ch4aw8mlbu77j"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://ch4aw8mlbu77j"]
 
 [ext_resource type="Texture2D" uid="uid://s7sawmj6vbbp" path="res://Controllers/textures/batteryIndicatorTexture32.png" id="1_tfxsk"]
 
